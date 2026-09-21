@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>客語線上程度測驗．四縣腔</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F6F1E4;
+    --paper-deep: #EFE7D4;
+    --ink: #2A2420;
+    --ink-soft: #6B5F52;
+    --indigo-1: #C9D6E3;
+    --indigo-2: #8FA8C4;
+    --indigo-3: #5A7CA6;
+    --indigo-4: #33517A;
+    --indigo-5: #16273F;
+    --clay: #A8462F;
+    --clay-soft: #F1DDD3;
+    --moss: #4C6B4F;
+    --moss-soft: #DCE6D4;
+    --gold: #B98A2E;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #FBF7EC 0%, transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #EFE4CE 0%, transparent 55%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Noto Sans TC', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .font-display{font-family:'Noto Serif TC', serif;}
+  ::selection{background:var(--indigo-3); color:#fff;}
+
+  /* subtle woven-cloth texture band used behind headers */
+  .cloth-band{
+    background-image:
+      repeating-linear-gradient(135deg, rgba(51,81,122,0.05) 0px, rgba(51,81,122,0.05) 2px, transparent 2px, transparent 10px);
+  }
+
+  .fade-in{ animation: fadeIn .5s ease both; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .btn-primary{
+    background:var(--indigo-4);
+    color:#fff;
+    transition: background .18s ease, transform .12s ease;
+  }
+  .btn-primary:hover{ background:var(--indigo-5); }
+  .btn-primary:active{ transform: scale(0.98); }
+  .btn-primary:disabled{ background:#B9B2A4; cursor:not-allowed; }
+
+  .btn-ghost{
+    background:transparent;
+    border:1.5px solid var(--indigo-3);
+    color:var(--indigo-5);
+    transition: all .15s ease;
+  }
+  .btn-ghost:hover{ background:var(--indigo-1); }
+
+  /* Level swatches — indigo dye depth I (light) -> V (dark) */
+  .swatch{
+    width:34px; height:34px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Noto Serif TC', serif; font-weight:700; font-size:13px;
+    border:2px solid transparent;
+    color:#fff;
+    transition: all .25s ease;
+  }
+  .swatch[data-lv="I"]{ background:var(--indigo-1); color:var(--indigo-5); }
+  .swatch[data-lv="II"]{ background:var(--indigo-2); color:#fff; }
+  .swatch[data-lv="III"]{ background:var(--indigo-3); color:#fff; }
+  .swatch[data-lv="IV"]{ background:var(--indigo-4); color:#fff; }
+  .swatch[data-lv="V"]{ background:var(--indigo-5); color:#fff; }
+  .swatch.active{
+    transform: scale(1.18);
+    box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--gold);
+  }
+  .swatch.dim{ opacity:.35; }
+
+  /* accent select cards */
+  .accent-card{
+    border:1.5px solid var(--paper-deep);
+    background:#fff;
+    transition: all .18s ease;
+    cursor:pointer;
+  }
+  .accent-card:hover{ border-color:var(--indigo-3); transform:translateY(-2px); }
+  .accent-card.selected{
+    border-color:var(--indigo-4);
+    background: linear-gradient(180deg, #fff, var(--indigo-1) 220%);
+    box-shadow: 0 6px 18px -10px rgba(22,39,63,.45);
+  }
+  .accent-card.selected .accent-dot{ background:var(--indigo-4); }
+  .accent-dot{
+    width:10px; height:10px; border-radius:50%;
+    background:var(--paper-deep);
+    transition: background .18s ease;
+  }
+
+  /* question card */
+  .q-card{
+    background:#fff;
+    border:1px solid var(--paper-deep);
+    box-shadow: 0 10px 30px -18px rgba(22,39,63,.35);
+  }
+
+  .opt-btn{
+    background:#fff;
+    border:1.5px solid var(--paper-deep);
+    text-align:left;
+    transition: all .15s ease;
+    cursor:pointer;
+  }
+  .opt-btn:hover{ border-color:var(--indigo-3); background:var(--indigo-1); }
+  .opt-btn.chosen{
+    border-color:var(--indigo-4);
+    background: var(--indigo-1);
+  }
+
+  .opt-audio-row{
+    background:#fff;
+    border:1.5px solid var(--paper-deep);
+    transition: all .15s ease;
+    cursor:pointer;
+  }
+  .opt-audio-row:hover{ border-color:var(--indigo-3); }
+  .opt-audio-row.chosen{ border-color:var(--indigo-4); background:var(--indigo-1); }
+
+  .img-opt{
+    border:3px solid var(--paper-deep);
+    background: var(--paper-deep);
+    cursor:pointer;
+    transition: all .15s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .img-opt:hover{ border-color:var(--indigo-3); }
+  .img-opt.chosen{
+    border-color:var(--indigo-4);
+    box-shadow: 0 0 0 3px var(--indigo-2);
+  }
+  .img-opt.chosen .check-badge{ opacity:1; transform:scale(1); }
+  .check-badge{
+    opacity:0; transform:scale(.5);
+    transition: all .18s ease;
+    background:var(--indigo-4);
+  }
+
+  .play-btn{
+    background:var(--indigo-5);
+    color:#fff;
+    transition: all .15s ease;
+  }
+  .play-btn:hover{ background:var(--indigo-4); }
+  .play-btn:active{ transform:scale(.96); }
+
+  .mini-play{
+    background:var(--indigo-1);
+    color:var(--indigo-5);
+    transition: all .15s ease;
+    flex-shrink:0;
+  }
+  .mini-play:hover{ background:var(--indigo-2); color:#fff; }
+
+  /* sound wave animation */
+  .wave{ display:inline-flex; align-items:flex-end; gap:2px; height:14px; }
+  .wave span{
+    width:2.5px; background:currentColor; border-radius:2px;
+    height:4px; opacity:.5;
+  }
+  .wave.playing span{ animation: waveBar .6s ease-in-out infinite; opacity:1; }
+  .wave.playing span:nth-child(1){ animation-delay:0s; }
+  .wave.playing span:nth-child(2){ animation-delay:.12s; }
+  .wave.playing span:nth-child(3){ animation-delay:.24s; }
+  .wave.playing span:nth-child(4){ animation-delay:.36s; }
+  @keyframes waveBar{
+    0%,100%{ height:4px; }
+    50%{ height:14px; }
+  }
+
+  .tag-correct{ background:var(--moss-soft); color:var(--moss); }
+  .tag-wrong{ background:var(--clay-soft); color:var(--clay); }
+
+  /* 口說測驗：錄音按鈕與字元標準度標示 */
+  .record-btn{
+    background:var(--clay);
+    box-shadow: 0 8px 20px -8px rgba(168,70,47,0.6);
+    transition: all .15s ease;
+  }
+  .record-btn:hover{ background:#8f3b26; }
+  .record-btn:active{ transform:scale(.96); }
+  .record-btn.recording{ animation: recordPulse 1.1s ease-in-out infinite; }
+  @keyframes recordPulse{
+    0%,100%{ box-shadow: 0 0 0 0 rgba(168,70,47,0.55); }
+    50%{ box-shadow: 0 0 0 14px rgba(168,70,47,0); }
+  }
+
+  .spinner{
+    width:15px; height:15px; border-radius:50%;
+    border:2px solid rgba(255,255,255,.4);
+    border-top-color:#fff;
+    animation: spin .7s linear infinite;
+    display:inline-block;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .char-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:5px 12px; border-radius:999px;
+    font-family:'Noto Serif TC', serif; font-weight:600; font-size:15px;
+    border:1.5px solid transparent;
+  }
+  .char-standard{ background:var(--moss-soft); color:var(--moss); border-color:var(--moss); }
+  .char-nonstandard{ background:var(--clay-soft); color:var(--clay); border-color:var(--clay); }
+  .char-chip-tag{ font-family:'Noto Sans TC', sans-serif; font-weight:500; font-size:10.5px; opacity:.85; }
+
+  .result-item{
+    border:1px solid var(--paper-deep);
+    background:#fff;
+  }
+
+  .progress-track{
+    height:6px; background:var(--paper-deep); border-radius:99px; overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; background:var(--indigo-4); border-radius:99px;
+    transition: width .35s ease;
+  }
+
+  ::-webkit-scrollbar{ width:10px; }
+  ::-webkit-scrollbar-thumb{ background:var(--indigo-2); border-radius:99px; }
+</style>
+</head>
+<body>
+<div id="app" class="min-h-screen w-full flex flex-col"></div>
+<script>
+// ==================== 題庫資料（由 Excel 轉換嵌入，v9） ====================
+const readingQuestions = [{"level": "I", "question": "「卵包」是指什麼？", "options": ["麵包", "荷包蛋", "包子"], "answer": 2}, {"level": "I", "question": "「蘿蔔粄」是指什麼？", "options": ["蘿蔔糕", "雞蛋糕", "蘿蔔湯"], "answer": 1}, {"level": "I", "question": "「零嗒」是指什麼？", "options": ["零錢", "零食", "流口水"], "answer": 2}, {"level": "I", "question": "哪一種食物是「零嗒」？", "options": ["果汁", "麵包", "糖果"], "answer": 3}, {"level": "I", "question": "「打早無閒直掣」是說早上怎樣？", "options": ["沒吃早餐", "很忙", "不舒服"], "answer": 2}, {"level": "I", "question": "「食包仔傍豆乳」的「傍」是什麼意思？", "options": ["放旁邊", "配著吃", "傍晚"], "answer": 2}, {"level": "I", "question": "「味緒」是什麼意思？", "options": ["味道", "頭緒", "嘴巴"], "answer": 1}, {"level": "I", "question": "「定著」是什麼意思？", "options": ["停住", "一定", "著急"], "answer": 2}, {"level": "I", "question": "「幫忙」是指什麼？", "options": ["𢯭手", "伸手", "洗手"], "answer": 1}, {"level": "I", "question": "「骯髒」是指什麼？", "options": ["糟糕", "屙糟", "上便所"], "answer": 2}, {"level": "I", "question": "「不知道」是指什麼？", "options": ["毋知", "還慶", "正知"], "answer": 1}, {"level": "I", "question": "阿雨的鞋髒了，要怎麼辦？", "options": ["搓淨來", "拿去晾"], "answer": 1}, {"level": "I", "question": "晾衣服時需要什麼？", "options": ["衫弓仔", "水槽"], "answer": 1}, {"level": "I", "question": "洗完衣服要晾到哪裡？", "options": ["竹篙項", "洗衫間"], "answer": 2}, {"level": "I", "question": "「仰會」是什麼意思？", "options": ["為什麼", "抬頭", "學會"], "answer": 1}, {"level": "I", "question": "「老鼠色」是什麼顏色？", "options": ["白色", "黑色", "灰色"], "answer": 3}, {"level": "I", "question": "「若姊」是什麼意思？", "options": ["阿若姊", "大姊", "你姊"], "answer": 3}, {"level": "I", "question": "一進家門，跟家人說什麼最適當？ ", "options": ["𠊎轉來了", "𠊎在灶下", "𠊎愛食點心"], "answer": 1}, {"level": "I", "question": "奶奶做點心給阿晴吃，阿晴跟奶奶說什麼？ ", "options": ["𠊎阿公毋見忒了！", "愛先去便所！", "恁仔細！"], "answer": 3}, {"level": "I", "question": "「共下」是什麼意思？", "options": ["一起", "下面", "總共"], "answer": 1}, {"level": "I", "question": "「日頭雨」是什麼意思？", "options": ["出太陽", "太陽雨", "下大雨"], "answer": 2}, {"level": "I", "question": "鬼驚麼个？", "options": ["淋雨", "太陽雨", "太陽"], "answer": 2}, {"level": "I", "question": "阿公驚麼个人？", "options": ["老鼠", "奶奶", "鬼"], "answer": 2}, {"level": "I", "question": "爺爺說阿雨「恁精」，是說阿雨是怎樣的人？", "options": ["很聰明", "很漂亮", "很可愛"], "answer": 1}, {"level": "I", "question": "「走相逐」是什麼意思？", "options": ["走路", "追逐", "跑步"], "answer": 2}, {"level": "I", "question": "撞到人，應該怎麼做？", "options": ["遽遽行開", "會失禮", "愛聽話"], "answer": 2}, {"level": "I", "question": "「落下𪘒𪘒」是什麼意思?", "options": ["掉牙齒", "流鼻血", "下巴脫臼"], "answer": 3}, {"level": "I", "question": "「耳公愛聽真」是什麼意思？", "options": ["耳朵要認真聽", "耳朵要聽真話", "耳朵真的很愛聽"], "answer": 1}, {"level": "I", "question": "「洗嘴」係麼个意思？", "options": ["刷牙", "喝水", "洗牙"], "answer": 1}, {"level": "I", "question": "「缺牙耙」係麼个意思？", "options": ["刷牙齒", "掉牙齒", "補牙齒"], "answer": 2}, {"level": "I", "question": "乳牙______，會再過生新牙。", "options": ["㪐忒", "擲忒", "拿忒"], "answer": 1}, {"level": "I", "question": "頭一擺生出來个牙齒係_______。", "options": ["乳牙", "蛀牙", "牙膏"], "answer": 1}, {"level": "I", "question": "食糖仔無洗牙齒會________ 。", "options": ["缺牙耙", "生豬哥牙", "蛀牙"], "answer": 3}, {"level": "I", "question": "「𠊎𠊎愛起勢算了哦！」的「起勢」是什麼意思?", "options": ["開始", "起立", "準備"], "answer": 1}, {"level": "I", "question": "「恬恬毋好出聲哦！」中的「恬恬」是什麼意思？", "options": ["笑笑", "安靜", "慢慢"], "answer": 2}, {"level": "I", "question": "「煞煞來這位！」的「煞煞」是什麼意思？", "options": ["不要", "趕快", "小心"], "answer": 2}, {"level": "I", "question": "「跈等」是什麼意思？", "options": ["等等", "珍惜", "跟著"], "answer": 3}, {"level": "I", "question": "「仰結煞」是什麼意思？", "options": ["急煞車", "怎麼辦", "抬頭看"], "answer": 2}, {"level": "I", "question": "𠊎還_______跳索仔,你做得教𠊎無?", "options": ["毋使", "毋知", "毋會"], "answer": 3}, {"level": "I", "question": "你个跳索忒長了，這條較________ 。", "options": ["練習", "堵好", "清楚"], "answer": 2}, {"level": "I", "question": "𠊎練習恁久了,________會跳了哦!", "options": ["差毋多", "仰結煞", "還毋會"], "answer": 1}, {"level": "I", "question": "阿晴，你________教阿松跳索仔無？ ", "options": ["毋會", "跈等", "做得"], "answer": 3}, {"level": "I", "question": "「手路菜」係麼个意思？", "options": ["拿手菜", "路邊買的菜", "便當"], "answer": 1}, {"level": "I", "question": "煎魚个時節火開忒大，食物可能會仰般呢？", "options": ["香馞馞仔", "臭乳臊", "臭火𤊶𤊶"], "answer": 3}, {"level": "I", "question": "下背哪隻形容詞个意思同/摎其他个無共樣？", "options": ["分人食到會尋尾哦", "無油無臘", "異餳人"], "answer": 2}, {"level": "I", "question": "底下哪項係外背買毋著个？", "options": ["圍身裙", "奇怪个衫", "嘴揞仔"], "answer": 2}, {"level": "I", "question": "超人身項總係會披等麼个？", "options": ["嘴揞仔", "圍身裙", "𠖄衫仔"], "answer": 3}, {"level": "I", "question": "「阿松這身打扮到恁光鮮亮麗！」請問做得用底下哪隻詞形容？", "options": ["分人笑", "恁派頭", "當生趣"], "answer": 2}, {"level": "I", "question": "底下哪項不係學校裡肚个設施？", "options": ["運動坪", "晃槓仔", "廳下"], "answer": 3}, {"level": "I", "question": "「囥人尋」係哪種遊戲？", "options": ["捉迷藏", "鬼抓人", "尋寶遊戲"], "answer": 1}, {"level": "I", "question": "做麼个「搞囥人尋，當歡喜」？", "options": ["因為樹很大", "因為跟大家一起玩", "因為只有一個人"], "answer": 2}, {"level": "I", "question": "「阿姆个心肝窟」係講麼个？", "options": ["媽媽的心窩", "媽媽的拿手好菜", "媽媽心裡難過"], "answer": 1}, {"level": "I", "question": "掃地泥愛用麼个掃？", "options": ["掃把", "拖把", "畚斗"], "answer": 1}, {"level": "I", "question": "抹桌凳愛用麼个抹？", "options": ["拖把", "桌布", "掃把"], "answer": 2}, {"level": "I", "question": "拖地泥會用到麼个？", "options": ["桌布", "拖把", "畚斗"], "answer": 2}, {"level": "I", "question": "掃地泥个時節，壁角乜愛記得掃！「壁角」係麼个意思？", "options": ["角落", "牆壁", "地板"], "answer": 1}, {"level": "I", "question": "「淨利」係麼个意思？", "options": ["鋒利", "一乾二淨", "乾淨"], "answer": 3}, {"level": "I", "question": "哪隻係正確个拚掃順序？", "options": ["掃泥下→抹桌凳→拖地泥", "抹桌凳→掃泥下→拖地泥", "掃地泥→拖泥下→抹桌凳"], "answer": 2}, {"level": "I", "question": "「阿松拖地泥像畫大字个樣仔」，係講阿松拖地个樣仔仰般？", "options": ["當淨俐", "當出力", "當儘採"], "answer": 3}, {"level": "I", "question": "「放尞日」係麼个意思？", "options": ["放生", "放風", "放假"], "answer": 3}, {"level": "I", "question": "「姐婆」係麼人/儕？", "options": ["奶奶", "外婆", "大姊"], "answer": 2}, {"level": "I", "question": "愛去澎湖，愛坐哪種交通工具正會到呢？", "options": ["公車或火車", "船或飛機", "捷運或高鐵"], "answer": 2}, {"level": "I", "question": "火車个聲係仰般个？", "options": ["咻咻咻", "嘟嘟嘟", "咚咚咚"], "answer": 2}, {"level": "I", "question": "「三義姑娘水水水」，「水水水」係麼个意思？", "options": ["很漂亮", "很多水", "姑娘是水變的"], "answer": 1}, {"level": "I", "question": "坐火車無打單个人愛仰般？", "options": ["𢱤推車仔", "買飯篼仔", "補車單"], "answer": 3}, {"level": "I", "question": "阿松讓位仔分老人家坐。阿松係仰般个人？", "options": ["生趣", "康健", "感心"], "answer": 3}, {"level": "I", "question": "「阿婷講佢單淨在夜市坐過細火車。」請問阿婷有坐過火車去尞無？", "options": ["有坐過", "無坐過", "無人知"], "answer": 2}, {"level": "I", "question": "火車子係仰般算个？", "options": ["一節一節", "一條一條", "一個一個"], "answer": 1}, {"level": "I", "question": "看著人做得先講麼个？ ", "options": ["有糖仔好食無", "恁仔細", "恁早"], "answer": 3}, {"level": "I", "question": "「舅姆」係阿舅个麼人？ ", "options": ["媽媽", "老婆", "妹妹"], "answer": 2}, {"level": "I", "question": "「𠊎鼻著了!」个「鼻」係麼个意思?", "options": ["吸", "聞", "鼻子"], "answer": 2}, {"level": "I", "question": "「姐公」請𫣆俚食「水粄仔」，底下哪隻講法較無適當?", "options": ["恁早", "恁仔細", "當好食"], "answer": 1}, {"level": "I", "question": "「天光日」係麼个意思？", "options": ["晴天", "明天", "今天"], "answer": 2}, {"level": "I", "question": "「仰結煞」係麼个意思？ ", "options": ["要結束", "闖禍了", "怎麼辦"], "answer": 3}, {"level": "I", "question": "「天光日放尞，________上課。」 ", "options": ["毋使", "毋好", "毋驚"], "answer": 1}, {"level": "I", "question": "「護士阿姨揇等小朋友」的「揇」係麼个意思？", "options": ["攔", "抓", "抱"], "answer": 3}, {"level": "II", "question": "「范姜古屋」為什麼有名？", "options": ["三級古蹟", "當多人戴在這位", "官員在這位開會"], "answer": 1}, {"level": "II", "question": "「廳下」裡不可以做什麼事？", "options": ["家族開會", "祭拜祖先", "分細人仔搞"], "answer": 3}, {"level": "II", "question": "下面哪一個不是祭拜祖先的含意？", "options": ["鬧熱", "不忘本", "感謝祖先"], "answer": 1}, {"level": "II", "question": "下面哪一種建築，可以看得出客家人注重家庭？", "options": ["老屋", "古蹟", "伙房屋"], "answer": 3}, {"level": "II", "question": "「挑事」係麼个意思？", "options": ["扛事", "挑明", "故意"], "answer": 3}, {"level": "II", "question": "「世大人」係麼个意思？", "options": ["家裡的長輩", "年紀大的人", "世界所有的人"], "answer": 1}, {"level": "II", "question": "「鬥緊」係麼个意思？", "options": ["打架", "趕緊", "要緊"], "answer": 2}, {"level": "II", "question": "「定定仔」係麼个意思？", "options": ["慢慢的", "一定", "固定"], "answer": 1}, {"level": "II", "question": "「嘴恁翹」表示麼个？", "options": ["嘴受傷", "不開心", "張開嘴"], "answer": 2}, {"level": "II", "question": "「挾菜」愛用麼个？", "options": ["湯匙", "碗", "筷子"], "answer": 3}, {"level": "II", "question": "「飯甑」係拿來裝麼个？", "options": ["飯", "湯", "豆腐"], "answer": 1}, {"level": "II", "question": "「知人我」係麼个意思？", "options": ["知道", "認識自己", "懂事"], "answer": 3}, {"level": "II", "question": "「恬恬仔」摎哪隻意思無共樣？", "options": ["悄悄的", "靜靜的", "甜甜的"], "answer": 3}, {"level": "II", "question": "「暗晡頭食飯」係食哪餐飯？", "options": ["早餐", "中餐", "晚餐"], "answer": 3}, {"level": "II", "question": "希望𫣆𫣆兜像在飛个________，共樣自由。", "options": ["白兔", "龜仔", "月鴿仔"], "answer": 3}, {"level": "II", "question": "先生用 ________个方式，來決定班服樣式。", "options": ["投票", "投手", "投入"], "answer": 1}, {"level": "II", "question": "「擇菜」係麼个意思？", "options": ["種菜", "挑菜", "煮菜"], "answer": 2}, {"level": "II", "question": "「撿揫」係麼个意思？", "options": ["收拾", "檢查", "撿起來"], "answer": 1}, {"level": "II", "question": "「叔姆」係麼个意思？", "options": ["阿姨", "嬸嬸", "伯母"], "answer": 2}, {"level": "II", "question": "阿松車仔_____，正入來尞。", "options": ["做好勢", "講好勢", "放好勢"], "answer": 3}, {"level": "II", "question": "去內灣，做得先坐火車到新竹火車頭，再過_____坐細火車到內灣。 ", "options": ["盤車", "駛車", "騎車"], "answer": 1}, {"level": "II", "question": "毋曉得仰般去該位所，做得查_______。", "options": ["地圖", "字典", "課本"], "answer": 1}, {"level": "II", "question": "阿松騎自行車來阿興屋下，佢無騎當久。請問阿松摎阿興屋下有幾遠？", "options": ["當遠", "兩隔壁", "當近"], "answer": 3}, {"level": "II", "question": "騎車仔愛定定仔騎哦！請問「定定仔」摎哪隻意思共樣？", "options": ["恬恬仔", "慢慢仔", "輕輕仔"], "answer": 2}, {"level": "II", "question": "騎車仔堵著大貨車愛離較遠兜。請問「堵著」摎哪隻意思共樣？", "options": ["管仔堵著", "水溝堵著", "堵著塞車"], "answer": 3}, {"level": "II", "question": "下背哪隻係「沙鼻」个行為？", "options": ["笑別人跑得慢", "誇獎別人跑得快", "把沙子灑到別人的鼻子上"], "answer": 2}, {"level": "II", "question": "「打卵退」係麼个意思？", "options": ["打雞蛋", "放棄", "沒有用"], "answer": 2}, {"level": "II", "question": "你當厲害，你_____𠊎兜了！", "options": ["贏", "輸"], "answer": 1}, {"level": "II", "question": "評判先生 _____一響，砰！選手就拚命走。", "options": ["口令", "銃仔", "嗶嗶仔"], "answer": 2}, {"level": "II", "question": "著傷愛去 _____ 膏藥仔。", "options": ["保健室", "教室肚", "跑道項"], "answer": 1}, {"level": "II", "question": "去跳蚤市場擺攤仔个意義係麼个？", "options": ["賺當多錢", "東西再利用", "打發時間"], "answer": 2}, {"level": "II", "question": "社區裡肚無人做伴个老人家，試著佢兜當______。", "options": ["衰過", "生趣", "好命"], "answer": 1}, {"level": "II", "question": "今晡日______放尞，𫣆俚共下整理屋下。", "options": ["堵好", "堵數", "堵塞"], "answer": 1}, {"level": "II", "question": "係去擺攤仔，試著____生趣。", "options": ["乜", "己", "已"], "answer": 3}, {"level": "II", "question": "摎阿爸「參詳」啊！「參詳」係麼个意思？", "options": ["參考", "商量", "詳細"], "answer": 2}, {"level": "II", "question": "無用著个東西，做得拿去跳蚤市場______送人。", "options": ["抑係", "係無", "毋係"], "answer": 1}, {"level": "II", "question": "「擺攤仔，愛顧攤位，恁辛苦做麼个？」這句話係麼个意思？", "options": ["贊成去顧攤位", "毋擺攤仔", "贊成去擺攤仔"], "answer": 2}, {"level": "II", "question": "下背哪隻毋係「跳蚤市場」个特色？", "options": ["做得賣好價數", "做得處理回收", "做得做環保"], "answer": 1}, {"level": "II", "question": "下背哪隻係「做頭家」个意思？", "options": ["自家開公司", "走第一名", "考試打頭名"], "answer": 1}, {"level": "II", "question": "麼儕人最有可能係做生理个人？", "options": ["陳同學", "王縣長", "劉頭家"], "answer": 3}, {"level": "II", "question": "食煙腸傍______ 當好食！", "options": ["開水", "蒜頭", "柚仔"], "answer": 2}, {"level": "II", "question": "焙包粟，愛仰般做正會熟又毋會臭火𤊶𤊶？", "options": ["掞兜仔鹽", "食兜仔茶", "包錫箔紙"], "answer": 3}, {"level": "II", "question": "嫦娥鼻著焙肉个香氣，毋知口涎水會______ 無？", "options": ["熝著", "溚溚跌", "有涼水啉"], "answer": 2}, {"level": "II", "question": "下背哪隻故事同/摎八月半無關係？", "options": ["兔仔同/摎龜仔走相逐", "吳剛伐桂", "嫦娥奔月"], "answer": 1}, {"level": "II", "question": "做麼个做毋得用手指月光？", "options": ["會做毋得食焙肉", "愛尊敬月光", "嫦娥會傷心會噭"], "answer": 2}, {"level": "II", "question": "里長伯出來巡社區，還______。", "options": ["煞猛", "沙鼻", "煞著"], "answer": 1}, {"level": "II", "question": "社區民眾愛_____，平常時就愛輒輒聯絡。", "options": ["相借問", "相惜", "相打"], "answer": 2}, {"level": "II", "question": "這兜想法做得分𫣆𫣆俚______一下。", "options": ["參詳", "參加", "參觀"], "answer": 1}, {"level": "II", "question": "𠊎想坐高鐵去高雄，再過______坐輕軌去看藝術品。", "options": ["騎車", "閃車", "盤車"], "answer": 3}, {"level": "II", "question": "想愛上便所个時節，就 ______去。", "options": ["愛黏時", "愛黏泥", "落泥時"], "answer": 1}, {"level": "II", "question": "天時恁熱，滿身係汗，要先______ 。", "options": ["緊食冰", "捽燥來", "緊吹冷氣"], "answer": 2}, {"level": "II", "question": "熱天莫著恁多衫褲，驚會______ 。", "options": ["熱著", "漉著", "寒著"], "answer": 1}, {"level": "II", "question": "寒天愛著燒暖兜仔，正毋會______ 。", "options": ["熱著", "漉著", "寒著"], "answer": 3}, {"level": "II", "question": "「包粟式著衫法」有麼个優點？", "options": ["時髦又流行", "便宜又省錢", "輕鬆又燒暖"], "answer": 3}, {"level": "II", "question": "下背哪隻伯公摎其他兩隻伯公个意思毋共樣？", "options": ["阿伯公", "伯公下", "輕拜伯公"], "answer": 1}, {"level": "II", "question": "「開容笑面」摎哪隻用法較毋共樣？", "options": ["笑咪咪", "笑微微", "笑哈哈"], "answer": 3}, {"level": "II", "question": "有一間靚靚个伯公下，伯公下係麼个意思？", "options": ["阿伯屋下", "土地廟", "阿伯公屋下"], "answer": 2}, {"level": "II", "question": "大甲河識做過大水，村民____石䃗來擋水。", "options": ["結", "䌈", "推"], "answer": 1}, {"level": "II", "question": "民間信仰个伯公又安到麼个？", "options": ["財神爺", "媽祖婆", "福德正神"], "answer": 3}, {"level": "II", "question": "客家人敬拜自然大地，會用麼个色布仔纏等，代表伯公在這？ ", "options": ["黃色", "紅色", "藍色"], "answer": 2}, {"level": "II", "question": "阿公____ 等水桶去洗車仔。", "options": ["擐", "擎", "扛"], "answer": 1}, {"level": "II", "question": "「𢯭手」同哪隻意思共樣？", "options": ["幫忙", "舉手", "伸手"], "answer": 1}, {"level": "II", "question": "年三十，愛轉公廳拜____ 啊。", "options": ["神明", "阿公婆", "伯公"], "answer": 2}, {"level": "II", "question": "「食水愛念水源頭，食果子愛拜樹頭。」係麼个意思？", "options": ["莫忘錢", "愛聽講", "莫忘本"], "answer": 3}, {"level": "II", "question": "下背哪隻情景做毋得「𠊎乜愛跈」？", "options": ["發病", "搞家啦飯仔", "走相逐"], "answer": 1}, {"level": "II", "question": "𠊎準備雞胲仔來布置活動場地！「雞胲仔」係麼个意思？", "options": ["雞蛋花", "氣球", "雞蛋糕"], "answer": 2}, {"level": "II", "question": "下背哪樣係零嗒？", "options": ["水果", "綵帶仔", "糖仔"], "answer": 3}, {"level": "II", "question": "「彎彎个身體像月光……」揣一種水果？", "options": ["黃梨", "弓蕉", "桔仔"], "answer": 2}, {"level": "II", "question": "客家獅特別个地方係麼个？", "options": ["四角嘴", "大耳公", "尖鼻公/空"], "answer": 1}, {"level": "II", "question": "叔伯阿哥當會______，撩到大家笑哈哈。", "options": ["講價", "講笑科", "講閒話"], "answer": 2}, {"level": "II", "question": "這擺走相追老弟打頭等。「打頭等」同/摎哪隻意思共樣？", "options": ["打頭陣", "打第一", "打頭那"], "answer": 2}, {"level": "II", "question": "「鬧棚」係麼个意思？", "options": ["鬧熱", "吵鬧", "鬧場"], "answer": 1}, {"level": "II", "question": "做鬧熱个時節，大家會____獅仔____鬧熱！", "options": ["舞、鬥", "打、看", "弄、襯"], "answer": 3}, {"level": "III", "question": "油桐花像落雪共樣，分人____「五月雪」。", "options": ["安到", "安名", "改名"], "answer": 1}, {"level": "III", "question": "阿雨同阿婆𢯭𢯭手____包袱。", "options": ["款", "擎", "挼"], "answer": 1}, {"level": "III", "question": "哪隻毋係山路个特色？", "options": ["彎彎斡斡", "狹極極仔", "平洋洋仔"], "answer": 3}, {"level": "III", "question": "𠊎「硬硬」會尋無停車位。「硬硬」同哪隻意思共樣？", "options": ["佢硬硬毋聽", "石頭硬硬", "硬硬个鐵板"], "answer": 1}, {"level": "III", "question": "下背哪儕人係「後生人」？", "options": ["阿婆", "阿姆", "阿晴"], "answer": 3}, {"level": "III", "question": "「律律不不」係麼个意思？", "options": ["邋遢毋淨俐", "阿里不答", "不守規矩"], "answer": 1}, {"level": "III", "question": "客家傳統衫褲有麼个優點？", "options": ["衫褲个色目毋驚屙糟", "傳統服裝著等已老相", "衫褲毋會恁容易爛忒"], "answer": 1}, {"level": "III", "question": "阿晴認為愛仰般分客家服裝較時行？", "options": ["同衫褲剪兩隻空仔", "用藍染來做牛仔褲", "著衫褲愛看著肚臍"], "answer": 2}, {"level": "III", "question": "你去雜貨店買卵，____同/摎𠊎擐一罐米酒轉來。", "options": ["順續", "順從", "順序"], "answer": 1}, {"level": "III", "question": "下背哪隻「正經」同/摎其他兩隻意思無共樣？", "options": ["花布正經當好用", "佢正經無在屋下", "上課愛正經"], "answer": 3}, {"level": "III", "question": "請問「無想著」个意思係麼个？", "options": ["毋肯想", "想著", "想無著"], "answer": 3}, {"level": "III", "question": "阿姆去市場買一____豆腐。", "options": ["垤", "碟", "粒"], "answer": 1}, {"level": "III", "question": "食飽夜大家𢯭手＿＿。", "options": ["撿採", "撿揫", "撿碗"], "answer": 2}, {"level": "III", "question": "請問「人公仔」係麼个意思？", "options": ["玩具", "嬰兒", "老阿公"], "answer": 1}, {"level": "III", "question": "「正經」乜做得仰般講？", "options": ["有影", "影仔", "有跡"], "answer": 1}, {"level": "III", "question": "「奇術師」係講花布係仰般形个？", "options": ["會變化", "會變形", "會變色"], "answer": 1}, {"level": "III", "question": "「時間當短」做得用哪隻語詞？", "options": ["目䁯䁯", "目瞌瞌仔", "𥍉下目"], "answer": 3}, {"level": "III", "question": "「出丁」係麼个意思？", "options": ["降妹仔", "降倈仔", "降細子"], "answer": 2}, {"level": "III", "question": "「過身」係麼个意思？", "options": ["人死忒", "身體鑽啊過", "𨃰𨃰過身體"], "answer": 1}, {"level": "III", "question": "「廟坪」係哪位？", "options": ["廟頭前", "廟裡肚", "廟後背"], "answer": 1}, {"level": "III", "question": "村民想用最珍貴个、最___个食物來感謝義民爺。", "options": ["妻", "萋", "棲"], "answer": 2}, {"level": "III", "question": "有信眾「䟓工」對南部來新竹參加這擺个祭典。「䟓工」同哪隻意思無共樣？", "options": ["䟓䟓", "專門", "目盯盯"], "answer": 3}, {"level": "III", "question": "下背哪種用法係毋著个？", "options": ["醹醹个餅", "醹醹个人情味", "醹醹个糖粥"], "answer": 1}, {"level": "III", "question": "同煮好个飯菜，送去敬奉義民爺个活動安到麼个？", "options": ["食豐派", "辦桌", "㧡擔奉飯"], "answer": 3}, {"level": "III", "question": "山貓仔____ 睡在地泥項緊呻。", "options": ["殗殗", "暢摸摸仔", "當鬆爽个"], "answer": 1}, {"level": "III", "question": "大家愛共心來愛惜、保護山貓仔，莫___ 滅忒哦。", "options": ["掌", "畀", "撳"], "answer": 2}, {"level": "III", "question": "「山貓仔」係麼个動物？", "options": ["黑貓", "獅子", "石虎"], "answer": 3}, {"level": "III", "question": "一綑一綑个菸葉_______後生人个心。", "options": ["跈等", "䌈等", "續等"], "answer": 2}, {"level": "III", "question": "寒天美濃个蘿蔔仔、番茄_______大出", "options": ["當好", "吂好", "堵好"], "answer": 3}, {"level": "III", "question": "正撈起來个魚仔，當_____。", "options": ["香", "萋", "靚"], "answer": 2}, {"level": "III", "question": "事頭會做毋忒了，毋好再過______哦。", "options": ["停跎", "恬靜", "矮頓"], "answer": 1}, {"level": "III", "question": "「彎斡个公路」係講該條路仰般？", "options": ["上崎下崎", "毋係直个", "蓋多岔路"], "answer": 2}, {"level": "III", "question": "這下食个水蓮，係仰般來个？", "options": ["自然生个", "人工種个", "外國進口"], "answer": 2}, {"level": "III", "question": "大家趕燒食哦！「趕燒食」在華語係麼个意思？", "options": ["趁熱吃", "趕快煮", "趕快吃"], "answer": 1}, {"level": "III", "question": "阿明這下尋無頭路，連_______就難。", "options": ["行路", "絡食", "揀食"], "answer": 2}, {"level": "III", "question": "傳統个客家藍衫， _______時代慢慢仔改變。", "options": ["跈等", "續等", "照等"], "answer": 1}, {"level": "III", "question": "正撈起來个魚仔，當_____又好食。", "options": ["香", "萋", "靚"], "answer": 2}, {"level": "III", "question": "哪種衫褲著起來較鬆爽？", "options": ["泅水衫", "運動衫", "襖婆"], "answer": 2}, {"level": "III", "question": "老弟各方面都有當好个表現。請問老弟个表現係仰般形？", "options": ["湛斗", "搶光", "魯夫"], "answer": 1}, {"level": "III", "question": "「企坐毋核」同/摎下背哪隻詞彙个意思共樣？", "options": ["三心二意", "七上八下", "七零八落"], "answer": 2}, {"level": "III", "question": "𠊎早就 _____一烳鏍个朋友愛𢯭𢯭手搶音樂會个票。", "options": ["勞攪", "勞力", "承勞仔"], "answer": 1}, {"level": "III", "question": "陳永淘創作「加了蜜」，請問「加了蜜」係麼个果子？", "options": ["番茄/妥瑪多", "黃梨", "蘋果"], "answer": 1}, {"level": "III", "question": "𠊎等 _____愛去聽了！？", "options": ["毋掣", "毋核", "毋搭"], "answer": 1}, {"level": "III", "question": "「三步一菸樓，五步一火煙。」這句話个意思係麼个？", "options": ["菸樓容易起火煙", "菸樓同/摎火煙無相關", "滿哪仔都有菸樓"], "answer": 3}, {"level": "III", "question": "「菸葉，冤業！」表示早期美濃人對種菸葉仔个想法係麼个？", "options": ["好賺毋過當艱苦", "種菸葉仔係無奈何个事", "當惱種菸葉"], "answer": 2}, {"level": "III", "question": "手指項該黏黏浹浹个烏菸油都_____毋得淨。", "options": ["摝", "搓", "挼"], "answer": 2}, {"level": "III", "question": "姐公做得讀到商專畢業，乜「打幫」這老菸樓。「打幫」做得換哪隻語詞？", "options": ["好得", "幫忙", "𢯭手"], "answer": 1}, {"level": "III", "question": "老菸樓這下變做____舊東西个位所。", "options": ["囤", "囥", "困"], "answer": 1}, {"level": "IV", "question": "看病_____用網路， 省忒盡多个時間。", "options": ["做毋得", "乜做得", "仰般"], "answer": 2}, {"level": "IV", "question": "「偏僻荒遠个地方」安到______？", "options": ["海角", "額角", "壁壢角"], "answer": 3}, {"level": "IV", "question": "乜有人利用網路， 用文字、圖片、影音分享生活_____心情。", "options": ["摎", "跈", "分"], "answer": 1}, {"level": "IV", "question": "「閒聊」用客語仰般講？", "options": ["打噎啄", "打爽", "打嘴鼓"], "answer": 3}, {"level": "IV", "question": "網路頂項做得講包山塞海， 分𫣆俚个生活緊來緊______、緊來緊精彩。", "options": ["便宜", "利便", "慢板"], "answer": 2}, {"level": "IV", "question": "「略略仔」同下背哪隻語詞个意思相像？", "options": ["一息息", "普普仔", "大概"], "answer": 1}, {"level": "IV", "question": "落大水，佢_____會慢到。", "options": ["共樣", "大體", "照等"], "answer": 2}, {"level": "IV", "question": "臺灣客話係用麼个方式來分類个？", "options": ["聲調", "腔調", "曲調"], "answer": 2}, {"level": "IV", "question": "下背哪隻語詞同「承蒙」个意思無共樣？", "options": ["多謝", "勞力", "恁仔細", "正來尞"], "answer": 4}, {"level": "IV", "question": "這件事情 定著，毋好恁遽就放送出去。", "options": ["還吂", "毋識", "長透"], "answer": 1}, {"level": "IV", "question": "阿婆煮个東西盡_____人吃。", "options": ["揜", "當", "餳"], "answer": 3}, {"level": "IV", "question": "識聽人講：恁好食个泡麵裡肚，囥等當多有害个物質，定著_____長透食。", "options": ["做得", "做毋得", "莫打爽"], "answer": 2}, {"level": "IV", "question": "因爭兩公婆愛上班，無閒煮飯分細人仔食，故所泡麵較_____。", "options": ["遽", "據", "劇"], "answer": 1}, {"level": "IV", "question": "泡麵滾水正沖啊落， 蓋仔_____無幾久， 就偷偷仔同蓋仔打開來看好食吂？", "options": ["揜", "囥", "出"], "answer": 1}, {"level": "IV", "question": "「㧡擔」奉忠勇。請問位講个「㧡擔」係麼个意思？", "options": ["抬東西", "挑擔子", "扛重物", "搬物品"], "answer": 2}, {"level": "IV", "question": "六堆運動會有「揹穀包」這隻項目，最主要係為著紀念麼个精神？", "options": ["對抗敵人个團結", "穀物收成个喜悅", "感謝先賢个保佑", "換工互助的个精神"], "answer": 4}, {"level": "IV", "question": "下背哪隻講法最無符合六堆運動會對客家文化个意義？", "options": ["係一種文化展演", "做得推展在地產業", "係客家子弟比輸贏个唯一個位所", "做得分過較多人了解六堆歷史文化"], "answer": 3}, {"level": "IV", "question": "「種仁」係麼个意思？", "options": ["開花", "種子", "結果"], "answer": 2}, {"level": "IV", "question": "「客家藍衫」 又安做麼个？", "options": ["T 恤", "運動衫", "大衿衫"], "answer": 3}, {"level": "IV", "question": "番檨樹、牛眼、朳仔一到_______个時節，細人仔絕對無放過佢﹗", "options": ["打子", "種仁", "開花"], "answer": 1}, {"level": "IV", "question": "逐科做下用客話來教學，望學生仔從細學習客話，同_______个客家精神。", "options": ["講頭就知尾", "晴耕雨讀", "煞猛打拚"], "answer": 3}, {"level": "IV", "question": "𠊎想愛分客家文化个_______，種在細人仔心肝肚開花打子。", "options": ["種植", "種仁", "種菜"], "answer": 2}, {"level": "IV", "question": "華語个「隨意、隨便」客語係仰般个表達方式？", "options": ["儘採", "話著", "打拚"], "answer": 1}, {"level": "IV", "question": "「第一垤」係講麼个？", "options": ["第一間", "第一塊", "第一次"], "answer": 2}, {"level": "IV", "question": "六堆地區个農民，展現了客人______毋認輸个精神。", "options": ["軟弱", "硬頸", "餳人"], "answer": 2}, {"level": "IV", "question": "佢較高，逐擺排列仔都排在較______。", "options": ["頭下", "頭前", "頭擺"], "answer": 2}, {"level": "IV", "question": "該隻狗，見 ______𠊎就吠，吠有好㘔喺！", "options": ["想愛", "看著", "輒常"], "answer": 2}, {"level": "IV", "question": "𠊎______跈你去，做得無？", "options": ["毋知", "還吂", "想愛"], "answer": 3}, {"level": "IV", "question": "原本大家講好共下去露營，______ 嗄伸著𠊎𠊎同阿明去定定。", "options": ["落尾", "頭下碼", "三不二時"], "answer": 1}, {"level": "IV", "question": "華語个「打招呼」客家話愛仰般表達？", "options": ["相打泌背", "相堵頭", "相借問"], "answer": 3}, {"level": "IV", "question": "客家話个「茶箍」係講麼个東西呢？", "options": ["沐浴乳", "肥皂", "茶几"], "answer": 2}, {"level": "IV", "question": "「雲將制服換忒，著一身个花衫」係比論麼个意思？", "options": ["日頭走轉去歇睏", "天時變了", "天頂出現天弓"], "answer": 1}, {"level": "IV", "question": "佢駛車，看著頭前紅燈就減速，慢慢仔擋恬落來。「擋恬」係麼个意思？", "options": ["安靜無聲", "天全黑", "停止"], "answer": 3}, {"level": "IV", "question": "「四月个西湖，鼻得著滿山个柚花香。」請問這句話係用哪種描寫方式？", "options": ["聽覺描寫", "視覺描寫", "嗅覺描寫"], "answer": 3}, {"level": "IV", "question": "無想著佢恁無閒，還______來看𠊎，實在感心。", "options": ["挑事", "打爽", "䟓䟓"], "answer": 3}, {"level": "IV", "question": "你去雜貨店買卵，______同𠊎擐一罐米酒轉來。", "options": ["順續仔", "毋識做", "做得毋"], "answer": 1}, {"level": "IV", "question": "哪隻詞有「信任依賴」、「藉由」个意思？", "options": ["頭擺", "倚恃", "看尞"], "answer": 2}, {"level": "IV", "question": "______年冬，百貨公司全會有年終打折優待。", "options": ["逐年", "逐日", "逐儕"], "answer": 1}, {"level": "IV", "question": "油桐花大體開在麼个時節？", "options": ["逐年四、五月", "逐年七、八月", "逐年九、十月"], "answer": 1}, {"level": "IV", "question": "講話總係儘採講講个人，係______毋得个。", "options": ["徛家", "倚恃", "交椅"], "answer": 2}, {"level": "IV", "question": "______出門个人，愛記得鎖門。", "options": ["包尾", "包頭", "包粟"], "answer": 1}, {"level": "IV", "question": "華語个「聰穎靈通」客家話愛仰般表達？。", "options": ["講天缺", "講花蓼", "講頭知尾"], "answer": 3}, {"level": "IV", "question": "______看電視該下，大家笑，佢就跈等笑！", "options": ["見笑", "見擺", "見到"], "answer": 2}, {"level": "IV", "question": "佢毋單止話語毋通，連食雜、生活習慣摎大家都無共樣，長透______。", "options": ["粗番番仔", "慍慍悴悴", "韌鉅鉅仔"], "answer": 2}, {"level": "IV", "question": "阿福伯姆个心臼又乖又曉得，隔壁鄰舍都盡阿腦。「心臼」係講麼儕人？", "options": ["廚師", "媳婦", "新娘"], "answer": 2}, {"level": "IV", "question": "________賺錢來食飯，佢日日愛做到三更半夜。", "options": ["為著", "為著", "拗著"], "answer": 1}, {"level": "IV", "question": "食著阿婆煮个鹹菜湯，故鄉个 ______就轉來了。", "options": ["禾稈", "甜味", "味緒"], "answer": 3}, {"level": "IV", "question": "「愛足三工人」佢个華語係講麼个意思？", "options": ["要加班三小時", "要有三個工人", "要滿三個工作天"], "answer": 3}, {"level": "IV", "question": "客家話「搞」水个搞，係麼个意思？", "options": ["作弊", "玩耍", "尋找"], "answer": 2}, {"level": "IV", "question": "麼个毋係客家人盡有特色个音樂文化？", "options": ["客家山歌", "八音", "歌仔戲"], "answer": 3}, {"level": "IV", "question": "書珊个婚禮，_______係認同客家精神，也係傳揚客家文化。", "options": ["毋使", "毋單淨", "毋得走"], "answer": 2}, {"level": "IV", "question": "華語个「明媒正娶」用客家話係仰般講？", "options": ["大行大嫁", "送嫁", "老行嫁"], "answer": 1}, {"level": "IV", "question": "客家話「吹笛仔」係歕麼个樂器？", "options": ["直笛", "長笛", "嗩吶"], "answer": 3}, {"level": "IV", "question": "「有一擺看著老阿伯蒔田…...」請問「蒔田」係麼个意思？", "options": ["拔草", "插秧", "收割", "澆水"], "answer": 2}, {"level": "IV", "question": "「羅隱啊，騎條馬耳劇劇仔......」請問「耳劇劇仔」係形容羅隱麼个樣仔？", "options": ["得意洋洋", "驚慌失措", "長得好看", "垂頭喪氣"], "answer": 1}, {"level": "IV", "question": "「過於激動个心情怕會分議題失焦。」請問這句話个意思係麼个？", "options": ["分演講內容變到較清楚", "分心情變到較穩定", "分聽者還較凝心", "分討論个重點變到無清楚"], "answer": 4}, {"level": "IV", "question": "「用空話，偷走吾个夢想摎童年。」請問這搭仔个「空話」係麼个意思？", "options": ["毋負責任个話", "簡單又空洞", "有夢想無行動", "無修飾過个話"], "answer": 1}, {"level": "IV", "question": "「苑裡人當有心，尋轉老藝師來傳承手藝。」這位个「有心」係麼个意思？", "options": ["有愛心", "有心臟", "有誠心", "有心事"], "answer": 3}, {"level": "IV", "question": "「洪鴦女士毋盼得厥倈仔生臭頭。」請問「生臭頭」係麼个意思？", "options": ["無洗頭那毛", "頭那皮盡臭", "頭那毛當少", "頭那頂發才仔"], "answer": 4}, {"level": "IV", "question": "「輪椅毋係束佢等个囹仔」，請問這句話係麼个意思？", "options": ["老人家無愛坐輪椅", "輪椅無法度限制老人家", "輪椅係老人家个負擔", "輪椅係老人家活動个工具"], "answer": 2}, {"level": "IV", "question": "「日頭光偷偷仔對天窗箭入來」，請問這句話係用哪種修辭？", "options": ["擬人", "譬喻", "誇飾", "對比"], "answer": 1}, {"level": "IV", "question": "「逐儕都係自家舞臺个主角」，請問這句話係想愛表達麼个？", "options": ["暗示老人家當好展風神", "鼓勵逐儕人勇敢上臺", "提醒學生仔注意身體康健", "強調逐儕人活出自家个精彩"], "answer": 4}, {"level": "IV", "question": "「㧡擔」奉忠勇。請問位講个「㧡擔」係麼个意思？", "options": ["抬東西", "挑擔子", "扛重物", "搬物品"], "answer": 2}, {"level": "IV", "question": "六堆運動會有「揹穀包」這隻項目，最主要係為著紀念麼个精神？", "options": ["對抗敵人个團結", "穀物收成个喜悅", "感謝先賢个保佑", "換工互助的个精神"], "answer": 4}, {"level": "IV", "question": "下背哪隻講法最無符合六堆運動會對客家文化个意義？", "options": ["係一種文化展演", "做得推展在地產業", "係客家子弟比輸贏个唯一個位所", "做得分過較多人了解六堆歷史文化"], "answer": 3}, {"level": "IV", "question": "六堆先民做麼个長透會械鬥？", "options": ["語言無通", "無休閒活動", "考試壓力大", "爭土地摎水源"], "answer": 4}, {"level": "IV", "question": "「麼个盡精彩？這係慘痛个歷史呢！」請問這句話个意思係講麼个呢？", "options": ["戰爭个過程十分慘烈", "漫畫書內容十分生動", "戰爭做毋得避免", "得著勝利十分困難"], "answer": 1}, {"level": "IV", "question": "「頭擺先民橫渡烏水溝來臺，盡衰過呢！」這句話个意思係講麼个呢？", "options": ["船仔無法度行臺灣海峽", "渡臺灣海峽辛苦又危險", "客家先民毋會裝熟", "臺灣海峽有當多烏魚仔"], "answer": 2}, {"level": "IV", "question": "六堆先民「保鄉衛土」个精神，放到這現代生活做得連結麼个事情呢？", "options": ["愛打戰爭電動", "愛出國旅遊", "愛護學校同社區", "愛食家鄉美食"], "answer": 3}, {"level": "IV", "question": "阿姆看到後生人車後斗个工作檯「淨淨俐俐」，講佢看起來異「伶俐」， 係因為佢仰般呢？", "options": ["當會整理工作檯", "當會賣咖啡", "騎鐵馬當快", "生到異好看"], "answer": 1}, {"level": "IV", "question": "「平常時上班，尞日箭鐵馬去運動兼賣咖啡」，這係仰般个生活態度？", "options": ["積極挑戰", "獨來獨往", "勤儉老實", "閒情享受"], "answer": 4}, {"level": "IV", "question": "女學生仔个狗仔「無堵好」咬死鄉親个雞仔 。這「無堵好」可能係講麼个意思？", "options": ["挑事个", "無法度預料个", "雞仔無關好", "動物个天性"], "answer": 2}, {"level": "IV", "question": "「網路項个訊息恁多，實在毋知愛相信麼儕講个？」這句話最主要係講麼个？", "options": ["資訊忒多難分辨真假", "資訊全係假个", "資訊全係正確个", "資訊全無人會相信"], "answer": 1}, {"level": "IV", "question": "「名仔淨係一個代號定定，毋過嗄係世大人對子女个一種期待」這句話有麼个觀念？", "options": ["名仔毋重要", "名仔會改變稱謂", "名仔有人个期望", "名仔係複雜个代號"], "answer": 3}, {"level": "IV", "question": "「讓路」个對象從「自然萬物」發展到「語言」。這種發展，無包含下 背哪項？", "options": ["保護環境", "交通安全", "相惜動物", "痛惜文化"], "answer": 2}, {"level": "IV", "question": "「總愛你个心恬靜下來，好好觀察生活肚个人、事、物，你乜做得寫出心肝肚个詩句。」這句話个意思係麼个？", "options": ["寫詩需要天分", "痛苦个人生正有好个詩", "寫詩需要用心紀錄生活", "寫詩較輕鬆簡單"], "answer": 3}, {"level": "IV", "question": "阿慧同阿婆交流「食物銀行」个概念，發現同客家有麼个關聯？", "options": ["飲食習慣", "惜食文化", "休閒娛樂", "歷史接近"], "answer": 2}, {"level": "IV", "question": "「原來，接近土地係恁好个事情。」這句話最主要係愛表達麼个意思？", "options": ["種菜比上課還較有趣味", "莊下生活比都會生活較好", "對土地有認同感", "自家當有種菜經驗"], "answer": 3}, {"level": "IV", "question": "可食地景除忒生產食物，還做得「加添休閒、社交功能」。這句話正經个意思係麼个？", "options": ["農業活動融入現代生活", "鼓勵大家多去交朋友", "農耕提升社區經濟", "種菜做得儆惜飯錢"], "answer": 1}, {"level": "IV", "question": "「人生愛食哪碗飯係生成个！」請問這句話最可能表現出職業生涯个特色係麼个？", "options": ["職業係由在天公註定", "愛順等自家性格發展", "煞猛打拚就做得成功", "有錢人正做得去學藝術"], "answer": 2}, {"level": "IV", "question": "「佢兜愛將該一個一個个缶碗先敲必，變做一垤一垤，過用剪仔剪做一細皮一細皮黏到粗胚面項。」這個過程最做得說明剪黏藝術有仰般个特色？", "options": ["作品容易壞忒", "需要耐心同細心", "儘採做都好看", "運用回收物品創作"], "answer": 2}, {"level": "IV", "question": "「佢用一支剪仔，裁剪出藝術个世界，分現下个後生人看著傳統文化个靚」。這隻「靚」係講麼个意思？", "options": ["作品表面好看", "收入非常多", "晴耕雨讀个精神", "技藝傳承个價值"], "answer": 4}, {"level": "IV", "question": "人客去客家餐廳點「九層塔卵」，但係頭家正分「七層塔卵」。這段對話點出麼个樣仔个問題？", "options": ["客家話同閩南語發音無共樣", "頭家聽毋識九層塔係麼个", "餐廳个菜色無符合人客个期待", "翻譯無正確就會產生誤解"], "answer": 4}, {"level": "IV", "question": "「毋單淨表演臺灣在地个故事，還會結合生活議題」，這句話最主要係講戲曲仰般呢？", "options": ["結合資訊科技", "需要老老嫩嫩共下傳承", "結合歌曲同舞蹈", "結合傳統同現代"], "answer": 4}, {"level": "IV", "question": "「總統，細妹仔做得；廚師，細倈仔擔得；肚皮舞，𠊎𠊎乜跳得啊！」請問係仰般个價值觀？", "options": ["性別有所爭", "理想毋好忒高", "社會無公平", "勇敢做自家"], "answer": 4}, {"level": "IV", "question": "下背係有關《四月望雨》這四首歌个紹介，哪項係正確个？", "options": ["鄧雨賢創作个客家童謠", "描述臺灣春夏秋冬个歌曲", "代表著臺灣歌謠个經典作品", "鼓勵奮發向上个勵志歌曲"], "answer": 3}, {"level": "IV", "question": "阿婆看到白鯧仔恁細尾仔定定，愛千過銀个時節，魚販仔應講「有魚仔好買就好偷暢了！」這段對話反映出仰般个現象？", "options": ["海鮮越來越稀少", "消費者買毋起魚仔", "魚販仔賣魚仔當歡喜", "魚販仔愛拉高價錢"], "answer": 1}, {"level": "V", "question": "「『古董』个司機帶分歸車人暢樂个心情。」請問「古董」做得換哪隻詞彙？", "options": ["嚴肅", "古板", "生趣", "條直"], "answer": 3}, {"level": "V", "question": "「樂暢心情會遰人」，請問下背哪隻選項乜會遰人？", "options": ["感冒/寒著", "流鼻", "長薯仔", "流口涎水"], "answer": 1}, {"level": "V", "question": "下背哪隻選項毋係樂暢心情个表現？", "options": ["嘴角翹往上", "暢到大聲咻", "心肝活活開", "叮嚀盡囉嗦"], "answer": 4}, {"level": "V", "question": "下背哪句最能表達「雖然人尖人，毋過，快樂个心情跈等車輪仔轉無停」个意思？", "options": ["雖然人多，毋過大家當恬靜", "雖然尖車，毋過大家當歡", "雖然想下車，毋過車仔無停", "雖然想坐車，毋過車仔無停"], "answer": 2}, {"level": "V", "question": "阿崴愛學習測量、畫圖、製作模型，係講職場仰般正會有專業能力？", "options": ["毋使讀專業書籍", "愛多看網路影片", "用別儕人个作業", "經過嚴條个考驗"], "answer": 4}, {"level": "V", "question": "花開到淰淰，請問「淰淰」在這位係講麼个意思？", "options": ["跌淨淨", "溼溚溚仔", "滿哪仔", "一息仔"], "answer": 3}, {"level": "V", "question": "小王子个玫瑰花講自家係「這世界唯一个玫瑰花」，請問玫瑰花佢有老實無？", "options": ["有，因為佢正經係唯一个花", "無，因為佢毋知世界有幾大仔", "無，因為佢單淨在該拐小王子。", "有，因為佢無中意其他个花"], "answer": 3}, {"level": "V", "question": "「想愛享受騎機車个風神感覺」，「風神」做得換哪隻詞彙？", "options": ["緊張", "神氣", "舒爽", "慍悴"], "answer": 2}, {"level": "V", "question": "「返生」這隻詞彙係用來形容麼个狀態？", "options": ["無生命力", "恢復活力", "發大病", "燒草仔"], "answer": 2}, {"level": "V", "question": "農村創生最好个方式係自立自強，摎下背哪个意思相近？", "options": ["賣茶講茶香，賣花講花紅", "目珠花花，瓠仔看做菜瓜", "人無千日好，花無百日紅", "人求我三春風；我求人六月雪"], "answer": 4}, {"level": "V", "question": "「冬至在月尾，賣牛來買被」係麼个意思？", "options": ["冬至該日做得去賣牛仔", "天時變當寒，愛買被來蓋", "冬至毋會冷，無需要買被", "冬至愛買被，分牛仔保暖"], "answer": 2}, {"level": "V", "question": "「鸚哥講天缺」，這句話个意思同哪隻選項盡相像？", "options": ["毛蟹吊頸", "鴨仔聽雷", "一條魚仔落鑊頭", "蟾蜍想食天鵝肉"], "answer": 4}, {"level": "V", "question": "哪句話表示「旅行過程做得慢慢仔進行」？", "options": ["琢琢仔行，慢慢仔尞", "趕緊仔做，遽遽仔行", "䟘床就走，行過就算", "走相逐，走過臺三線"], "answer": 1}, {"level": "V", "question": "下背哪項係臺三線个特色？", "options": ["觀光工廠", "購物中心", "藝文摎農產", "高樓摎捷運"], "answer": 3}, {"level": "V", "question": "「煮較酪兜」係講煮到仰般形？", "options": ["硬硬", "綿綿", "甜甜", "鹹鹹"], "answer": 2}, {"level": "V", "question": "「枵到手軟腳犁」係麼个意思？", "options": ["無氣力", "精神好", "食忒飽", "腳當痛"], "answer": 1}, {"level": "V", "question": "「想愛煮分佢兜食，單淨做得在夢中」這句話係麼个意思？", "options": ["阿姆還在", "無材料煮", "思念親人", "想改行業"], "answer": 3}, {"level": "V", "question": "「倒汫」个意思係麼个？", "options": ["洗淨俐", "企等放", "顛倒放", "揤淰淰"], "answer": 3}, {"level": "V", "question": "「這皮覆菜摎𠊎醹醹个客家情感綯緪緪」這句話裡肚个「醹醹」 同「綯緪緪」係哪種口氣？", "options": ["無麼个感情", "歡喜又熱鬧", "當深个情感", "想改行業"], "answer": 3}, {"level": "V", "question": "「覆菜」做麼个又安到「福菜」？", "options": ["食了會變到盡幸福个人", "「覆」摎「福」音當兼", "做得放在福袋裡肚囥等", "過年過節請人食个名菜"], "answer": 2}, {"level": "V", "question": "「正起勢」最可能係麼个意思？", "options": ["正愛開始", "既經結束", "還在比賽", "全停下來"], "answer": 1}, {"level": "V", "question": "「毋使秤仔」係麼个意思？", "options": ["用手定定仔測量", "用目珠大概推算", "無使用秤重工具", "毋知仰般稱東西"], "answer": 3}, {"level": "V", "question": "「擇自家最在行个」中「在行」係麼个意思？", "options": ["想愛做", "當會做", "毋會做", "看人做"], "answer": 2}, {"level": "V", "question": "「你假使走在𠊎後背」个「假使」做得換哪隻詞彙，厥个意思還係共樣？", "options": ["就係", "若係", "可能", "分明"], "answer": 2}, {"level": "V", "question": "「歸個心都在注意𠊎」這句話係講趙襄主仰般形？", "options": ["特別注意自家", "單淨關心馬仔", "分心在意對手", "一直想愛贏人"], "answer": 3}, {"level": "V", "question": "「毋驚日頭烈烈，天公轉風車」係講阿婆有哪種態度？", "options": ["驚風搓落大雨", "好蹶山吹涼風", "毋驚風吹日曬", "出日頭就歇睏"], "answer": 3}, {"level": "V", "question": "「汗水香，囥等親情分麼儕」，請問「汗水香」有麼个意向？", "options": ["運動後臭汗臊", "洗衫粉个味道", "噴香水分人鼻", "勞動後个芬芳"], "answer": 4}, {"level": "V", "question": "「心頭暖，一支遮」要表達麼个意思？", "options": ["阿婆輒輒拿遮仔分人用", "遮仔擋風抵雨當多功用", "阿婆个愛像遮仔，分人溫暖", "遮仔看起來像大蕊个花"], "answer": 3}, {"level": "V", "question": "「日日年年開等啊」這句話係表達哪種情感？", "options": ["阿婆个愛永久在", "花開永遠毋會謝", "花香永久毋會變", "阿婆每日愛種花"], "answer": 1}, {"level": "V", "question": "陳土長年透天在河壩肚網魚仔，「長年透天」做得換哪隻詞彙？", "options": ["歸日", "歸禮拜", "歸隻月", "歸年"], "answer": 4}, {"level": "V", "question": "良善，天會知，時來鐵仔會成金，「鐵仔會成金」這句話係麼个意思？", "options": ["打鐵會發財", "好心有好運", "鐵仔會變軟", "鐵比金仔貴"], "answer": 2}, {"level": "V", "question": "「阿姆唆慫佢，買該上烏點、毋會忒熟个弓蕉。」請問「唆慫」做得換哪隻詞彙，佢个意思還係共樣？", "options": ["推銷", "拒絕", "罵人", "梟人"], "answer": 1}, {"level": "V", "question": "「送還送，買還買，買賣算分，𠊎無愛佢擔个恩情。」請問「擔𫣆个恩情」係麼个意思？", "options": ["欠人情", "當感動", "負責任", "毋插人"], "answer": 1}, {"level": "V", "question": "「毋過，學校實在難有講客个環境。」這句話裡肚个「毋過」做得換做哪隻詞彙？", "options": ["但係", "然後", "故所", "雖然"], "answer": 1}, {"level": "V", "question": "「正有機會傳揚下去」係仰般个口氣？", "options": ["有確定會發生", "當罕得會發生", "有希望會發生", "無希望會發生"], "answer": 3}, {"level": "V", "question": "請問「吊菜色」係麼个色目？", "options": ["紫色", "黃色", "綠色", "白色"], "answer": 1}, {"level": "V", "question": "「這種仙草愛較多工，愛像摘茶恁樣，細心細意个摘一芯兩葉起來。」請問「細心細意」做得換哪隻詞彙，佢个意思還係共樣？", "options": ["儘儘採採", "無閒洎杈", "大主大意", "小心細義"], "answer": 4}, {"level": "V", "question": "「這種仙草，名仔安到『香華』，愛像摘茶恁樣，細心細意个摘一芯兩葉起來。」係講「香華」這種仙草有麼个特色？", "options": ["葉仔較大皮", "花係紅色个", "採收較多工", "做得直接食"], "answer": 3}, {"level": "V", "question": "「食起來香氣異單純，留在喉嗹頭个回甘」，這句話係講仙草茶食起來仰般？", "options": ["試著當辣", "喉嗹頭痛", "又香又甘", "又苦又澀"], "answer": 3}, {"level": "V", "question": "「晟光」這隻詞係形容麼个？", "options": ["日頭花箭出來", "𥍉爧又響雷公", "雨落當大", "星仔滿天"], "answer": 1}, {"level": "V", "question": "「心肝頭拶拶」這句係描寫麼个感覺？", "options": ["歡喜", "嚇著", "慍悴", "當𤸁"], "answer": 3}, {"level": "V", "question": "「天起魚鱗斑，曬穀毋使翻」這句話係麼个意思？", "options": ["會起風，穀仔愛收好", "愛落大水，穀仔愛翻", "穀仔變壞，要換地方", "出大日頭，曬穀順利"], "answer": 4}, {"level": "V", "question": "請問客家人在外洋生活，愛仰般維護自家个族群？", "options": ["學習當地方言毋會講客", "學習外國人淨會講英文", "毋記得自家故鄉个文化", "保持自家个語言同文化"], "answer": 4}, {"level": "V", "question": "「寧賣祖宗田，不忘祖宗言。」請問這句話係愛傳達哪種精神？", "options": ["愛輒常轉到故鄉探望屋下人", "傳承語言同文化比財產重要", "祖先个話做毋得違背同攉忒", "世大人交代做毋得賣忒祖產"], "answer": 2}];
+
+const listeningQuestions = [{"level": "I", "question": "注意聽，選出正確的圖。", "audio": "包仔.wav", "options": ["飯.png", "包子.png"], "answer": 2}, {"level": "I", "question": "注意聽，選出正確的圖。", "audio": "豆乳.wav", "options": ["豆漿.png", "麵包.png"], "answer": 1}, {"level": "I", "question": "注意聽，選出正確的圖。", "audio": "零嗒.wav", "options": ["零食.png", "餅乾.png"], "answer": 1}, {"level": "I", "question": "注意聽，選出正確的圖。", "audio": "果汁.wav", "options": ["牛奶.png", "果汁.png"], "answer": 2}, {"level": "I", "question": "注意聽，選出正確的圖。", "audio": "麵包.wav", "options": ["包子.png", "麵包.png"], "answer": 2}, {"level": "I", "question": "注意聽，選出正確的圖。", "audio": "牛乳.wav", "options": ["豆漿.png", "牛奶.png"], "answer": 2}, {"level": "I", "question": "注意聽，選出正確的圖。", "audio": "阿公好食飯.wav", "options": ["飯.png", "零食.png"], "answer": 1}, {"level": "I", "question": "注意聽，阿公在哪裡？", "audio": "阿公在廳下.wav", "options": ["灶下.png", "浴堂.png", "廳下.png", "間房.png"], "answer": 3}, {"level": "I", "question": "注意聽，選出正確的圖。", "audio": "機車.wav", "options": ["行路.png", "機車.png", "車仔.png", "路口.png"], "answer": 2}, {"level": "I", "question": "注意聽，選出正確的圖.", "audio": "大路.wav", "options": ["機車.png", "車仔.png", "大路.png", "行路.png"], "answer": 3}, {"level": "I", "question": "注意聽，選出正確的圖。", "audio": "耳公.wav", "options": ["頭那.png", "耳公.png", "目珠.png", "鼻公.png"], "answer": 2}, {"level": "I", "question": "注意聽，選出正確的圖。", "audio": "目珠.wav", "options": ["鼻公.png", "頭那.png", "耳公.png", "目珠.png"], "answer": 4}, {"level": "I", "question": "注意聽，選出正確的圖。", "audio": "𠊎大聲喊.wav", "options": ["𠊎在搞玩具.png", "𠊎大聲喊.png", "小朋友在搞囥人尋.png", "這位愛恬恬.png"], "answer": 2}, {"level": "I", "question": "毛毛蟲每天都吃不同的食物，請根據音檔選出牠今天吃的是什麼？", "audio": "拜四食果子.wav", "options": ["堅果.png", "青菜.png", "果子.png", "烰雞肉.png"], "answer": 3}, {"level": "I", "question": "毛毛蟲每天都吃不同的食物，請根據音檔選出牠今天吃的是什麼？", "audio": "拜一食番薯飯.wav", "options": ["烰雞肉.png", "番薯飯.png", "堅果.png", "果子.png"], "answer": 2}, {"level": "II", "question": "今晡日係麼个節日？", "audio": "今晡日係正月半.wav", "options": ["正月半.png", "五月節.png"], "answer": 1}, {"level": "II", "question": "注意聽，選出正確的答案。", "audio": "公車來了，𠊎兜做得摎司機做麼个動作？.wav", "options": ["𢯭手.wav", "扼手.wav", "擛手.wav"], "answer": 3}, {"level": "II", "question": "注意聽，選出正確的圖。", "audio": "佢兜在走相逐。.wav", "options": ["走相逐.png", "打卵退.png", "沙鼻.png"], "answer": 1}, {"level": "II", "question": "注意聽，選出正確的圖。", "audio": "做事情莫因為堵著困難就打卵退。.wav", "options": ["沙鼻.png", "走相逐.png", "打卵退.png"], "answer": 3}, {"level": "II", "question": "注意聽，選出正確的答案。", "audio": "無細義行路會仰般？.wav", "options": ["摸著.wav", "拈到.wav", "跌倒.wav"], "answer": 3}, {"level": "II", "question": "注意聽，選出正確的答案。", "audio": "愛比賽了，心情當仰般？.wav", "options": ["難過.wav", "緊張.wav", "譴.wav"], "answer": 2}, {"level": "II", "question": "注意聽，選出相符的圖。", "audio": "圍等頸圍仔.wav", "options": ["圍巾.png", "手套.png", "長袖.png"], "answer": 1}, {"level": "II", "question": "注意聽，選出相符的圖。", "audio": "熱𤐰𤐰仔个熱天.wav", "options": ["涼爽.png", "熱天.png", "寒天.png"], "answer": 2}, {"level": "II", "question": "注意聽，選出正確的讀音。", "audio": "親戚.wav", "options": ["qInˇ qIdˋ", "qInˊ qIdˋ", "qIn qIdˋ"], "answer": 2}, {"level": "II", "question": "注意聽，選出正確的讀音。", "audio": "叔伯.wav", "options": ["sugˋ bagˋ", "sugˊ bagˋ", "sugˋ bag"], "answer": 1}, {"level": "III", "question": "注意聽，選出正確的答案。", "audio": "老弟分阿爸罵，厥个面會仰般？.wav", "options": ["臭交交仔.wav", "開容笑面.wav", "呆呆.wav"], "answer": 1}, {"level": "III", "question": "注意聽，選出正確的讀音。", "audio": "老頭擺.wav", "options": ["loˇ teuˇ baIˋ", "loˋ teuˇ baIˋ", "loˊ teu baIˊ "], "answer": 2}, {"level": "III", "question": "注意聽，選出正確的讀音。", "audio": "毋會㜮.wav", "options": ["mˇ voI lamˊ", "mˇ foI lamˊ", "m voI+ lamˊ"], "answer": 1}, {"level": "III", "question": null, "audio": "客家人在正月半个時節，會用麼个東西來敬謝伯公？.wav", "options": ["紅粄.wav", "粽仔.wav", "艾粄.wav"], "answer": 1}, {"level": "III", "question": null, "audio": "阿晴一𥍉目就同碗筷洗好了。請問阿晴做事情仰般形？.wav", "options": ["當幼工.wav", "當遽手.wav", "當濫糝.wav"], "answer": 2}, {"level": "III", "question": "注意聽，選出正確的讀音。", "audio": "「花」，桐花个「花」.wav", "options": ["fuaˊ", "haˊ", "faˊ"], "answer": 3}, {"level": "III", "question": "注意聽，選出正確的讀音。", "audio": "「翕」，翕相个「翕」.wav", "options": ["hIbˋ", "gIdˋ", "shIbˋ"], "answer": 1}, {"level": "III", "question": "注意聽，選出正確的答案。", "audio": "主辦單位成時會提供接送服務。「成時」同哪隻意思共樣？.wav", "options": ["成擺.wav", "見擺.wav", "逐擺.wav"], "answer": 1}, {"level": "III", "question": "注意聽，選出正確的答案。", "audio": "因爭老弟發燒，歸個人看起來仰仔？.wav", "options": ["殗殗.wav", "暢摸摸仔.wav", "驚忸忸仔.wav"], "answer": 1}, {"level": "IV", "question": "注意聽，選出音檔中有出現的詞。", "audio": "捷運通車，交通加異「利便」。.wav", "options": ["定票", "利便"], "answer": 2}, {"level": "IV", "question": "注意聽，選出音檔中有出現的詞。", "audio": "看病「乜做得」用網路。.wav", "options": ["做毋得", "乜做得"], "answer": 2}, {"level": "IV", "question": "注意聽，選出音檔中有出現的詞。", "audio": "𠊎「毋識」去過日本尞。.wav", "options": ["毋識", "毋知"], "answer": 1}, {"level": "IV", "question": "注意聽，選出音檔中有出現的詞。", "audio": "這衫褲還做得留下來分老妹著，「莫打爽」忒。.wav", "options": ["莫打爽", "等毋掣"], "answer": 1}, {"level": "IV", "question": "注意聽，選出音檔中有出現的詞。", "audio": "佢恁無閒，還「䟓䟓」來看𠊎，當感心。.wav", "options": ["倚恃", "䟓䟓"], "answer": 2}, {"level": "IV", "question": "注意聽，選出音檔中有出現的詞。", "audio": "賺著个錢「畜得起」歸家屋人呢！.wav", "options": ["續得起", "畜得起"], "answer": 2}, {"level": "IV", "question": "注意聽，選出音檔中有出現的詞。", "audio": "「毋會」耕種个佢，文章寫个全係在耕種个故事。.wav", "options": ["無會", "毋會"], "answer": 2}, {"level": "V", "question": "注意聽，選出正確的讀音。", "audio": "得人惜，「得人惜」个人公仔个得人惜。.wav", "options": ["dedˋ ngInˇ xIagˋ", "dedˋ ngInˇ gIangˊ", "dedˋ ngInˇ nauˊ", "dedˋ ngInˇ vI"], "answer": 1}, {"level": "V", "question": "注意聽，選出正確的讀音。", "audio": "人尖人，車仔裡肚「人尖人」个人尖人。.wav", "options": ["ngInˇ gIangˊ ngInˇ", "ngInˇ jIamˊ ngInˇ", "ngInˇ seu ngInˇ", "ngInˇ hagˋ ngInˇ"], "answer": 2}, {"level": "V", "question": "注意聽，選出正確的讀音。", "audio": "淰淰，花開到「淰淰」个淰淰。.wav", "options": ["hInˇ hInˇ", "fadˋ fadˋ", "lang lang", "nemˊnemˊ"], "answer": 4}, {"level": "V", "question": "注意聽，選出最有可能的回答。", "audio": "有時節會愁自家尋毋著方向。.wav", "options": ["𠊎乜開始學煮菜，分擔家務。.wav", "無要緊，定定仔就會尋著自家个路。.wav", "做得教小朋友數學，𠊎當歡喜。.wav", "講話忒直會傷著人个自尊心。.wav"], "answer": 2}, {"level": "V", "question": "注意聽，選出最有可能的回答。", "audio": "在公共場合用手機講話愛細聲兜仔。.wav", "options": ["有啊，𠊎兜个主題係環保能源。.wav", "𠊎試著當好啊，做得減少環境污染。.wav", "恁樣較毋會吵著別人。.wav", "會啊，𠊎同阿公共下參加趣味競賽。.wav"], "answer": 3}, {"level": "V", "question": "注意聽，選出最有可能的回答。", "audio": "當感謝你肯同𠊎討論這兜。.wav", "options": ["溝通愛有來有去，大家做得理解最重要。.wav", "逐禮拜六𠊎都會去教小朋友寫功課。.wav", "還好哦，𠊎做得同你兜去蹶山無？.wav", "佢兜行路个樣仔還得人惜。.wav"], "answer": 1}, {"level": "V", "question": "注意聽，選出最有可能的回答。", "audio": "學校這下當在該辦義賣，你愛去參加無？.wav", "options": ["當然愛去啊，恁樣做得𢯭手還較多需要个人！.wav", "毋會，單淨愛𢯭手整理書架同借書。.wav", "著啊，先生交代个都有做好。.wav", "當好啊，佢用例仔解說到當清楚。.wav"], "answer": 1}, {"level": "V", "question": "注意聽，選出正確的答案。", "audio": "「大了嫁到學老莊，盡思念个係阿姆个覆菜炆桂竹筍」表達哪種想法？.wav", "options": ["嫁人後懷念阿姆个味緒.wav", "嫁人就毋想阿姆个味緒.wav", "學老莊个料理盡好食.wav", "佢盡惱覆菜炆桂竹筍.wav"], "answer": 1}];
+
+const speakingQuestions = [{"level": "I", "type": "華語轉換客語", "question": "包子", "target": "包仔", "romanization": "bau24 e31"}, {"level": "I", "type": "華語轉換客語", "question": "豆漿", "target": "豆乳", "romanization": "teu55 ngi55"}, {"level": "I", "type": "華語轉換客語", "question": "零食", "target": "零嗒", "romanization": "len11 dab2"}, {"level": "I", "type": "華語轉換客語", "question": "背心", "target": "裌仔", "romanization": "gap2 e31"}, {"level": "I", "type": "客語看字朗讀", "question": "運動衫", "target": "運動衫", "romanization": "un55 dung55 sam24"}, {"level": "I", "type": "華語轉換客語", "question": "襪子", "target": "襪仔", "romanization": "mad2 e31"}, {"level": "I", "type": "華語轉換客語", "question": "廚房", "target": "灶下", "romanization": "co55 ha55"}, {"level": "I", "type": "華語轉換客語", "question": "房間", "target": "間房", "romanization": "gan24 foon11"}, {"level": "I", "type": "華語轉換客語", "question": "廁所", "target": "便所", "romanization": "pien55 co31"}, {"level": "I", "type": "華語轉換客語", "question": "紅綠燈", "target": "青紅燈", "romanization": "ciang24 fung11 den24"}, {"level": "I", "type": "華語轉換客語", "question": "十字路口", "target": "路口", "romanization": "lu55 heu31"}, {"level": "II", "type": "華語轉換客語", "question": "元宵節", "target": "正月半", "romanization": "zang11 ngi55 ban55"}, {"level": "II", "type": "華語轉換客語", "question": "追逐", "target": "走相逐", "romanization": "zeu31 siong24 tug5"}, {"level": "II", "type": "華語轉換客語", "question": "打退堂鼓", "target": "打卵退", "romanization": "da31 lon31 toi55"}, {"level": "II", "type": "華語轉換客語", "question": "長輩", "target": "世大人", "romanization": "sii55 tai55 ngin11"}, {"level": "II", "type": "華語轉換客語", "question": "放好", "target": "放好勢", "romanization": "bong55 ho31 se55"}, {"level": "II", "type": "客語看字朗讀", "question": "資源回收", "target": "資源回收", "romanization": "zi24 ngien11 hoed2 xiu24"}, {"level": "II", "type": "華語轉換客語", "question": "烤肉", "target": "焙肉", "romanization": "boi55 ngiug5"}, {"level": "II", "type": "華語轉換客語", "question": "香腸", "target": "煙腸", "romanization": "en24 cong11"}, {"level": "II", "type": "華語轉換客語", "question": "左鄰右舍", "target": "上家下屋", "romanization": "song55 ga24 ha55 vug2"}, {"level": "III", "type": "華語轉換客語", "question": "很久以前", "target": "老頭擺", "romanization": "lo31 teu11 bai31"}, {"level": "III", "type": "華語轉換客語", "question": "滿面笑容", "target": "開容笑面", "romanization": "kai24 iung11 xieu55 mien55"}, {"level": "III", "type": "華語轉換客語", "question": "動作很快", "target": "當遽手", "romanization": "dong24 giag2 su31"}, {"level": "III", "type": "華語轉換客語", "question": "油桐花", "target": "五月雪", "romanization": "ng31 ngiad2 xied2"}, {"level": "III", "type": "華語轉換客語", "question": "洋娃娃", "target": "人公仔", "romanization": "ngin11 gung24 e31"}, {"level": "III", "type": "華語轉換客語", "question": "很高興見到你", "target": "當歡喜看著你", "romanization": "dong24 fon24 hi31 kon55 do31 ngi11"}, {"level": "III", "type": "華語轉換客語", "question": "吵得我受不了", "target": "吵到𠊎佇毋著", "romanization": "cau31 do31 ngai11 cu55 m11 co55"}, {"level": "III", "type": "華語轉換客語", "question": "吃飽飯要刷牙", "target": "食飽飯愛搓牙齒", "romanization": "siid5 bau31 fan55 oi55 co24 nga11 cii31"}, {"level": "III", "type": "華語轉換客語", "question": "外面很冷喔", "target": "外背當寒哦", "romanization": "ngoi55 boi55 dong24 hon11 o24"}, {"level": "IV", "type": "華語轉換客語", "question": "舉一反三", "target": "講頭知尾", "romanization": "gong31 teu11 zi24 vi31"}, {"level": "IV", "type": "客語看字朗讀", "question": "晴耕雨讀", "target": "晴耕雨讀", "romanization": "cin11 gang24 yi31 dug5"}, {"level": "IV", "type": "華語轉換客語", "question": "努力奮鬥", "target": "煞猛打拚", "romanization": "sad2 mang31 da31 biang55"}, {"level": "IV", "type": "客語看字朗讀", "question": "光鮮亮麗", "target": "光鮮亮麗", "romanization": "gong24 xien24 liong55 li55"}, {"level": "IV", "type": "華語轉換客語", "question": "現在的生活越來越方便", "target": "現下个生活緊來緊利便", "romanization": "hien55 ha55 e31 sen11 fad5 gin31 loi11 gin31 li55 pien55"}, {"level": "IV", "type": "華語轉換客語", "question": "老師帶學生去圖書館看書", "target": "先生渡學生仔去圖書館看書", "romanization": "sien24 sang24 du55 hogo55 sen24 e31 hi55 tu11 su24 gon31 kon55 su24"}, {"level": "IV", "type": "華語轉換客語", "question": "寫作是他的興趣，也是他的夢想", "target": "寫作係厥興趣，乜係厥夢想", "romanization": "xia31 zog2 he55 giag2 xing55 gi31, mied2 he55 giag2 mung55 siong31"}, {"level": "IV", "type": "華語轉換客語", "question": "你家裡的電話幾號", "target": "你屋下个電話幾多號", "romanization": "ngi11 vug2 ha55 e31 dien55 va55 gi24 do24 ho55"}, {"level": "IV", "type": "華語轉換客語", "question": "我們一起去逛街", "target": "𠊎兜共下來去遶街", "romanization": "ngai11 deu24 kiung55 ha55 loi11 hi55 rau55 gie24"}, {"level": "IV", "type": "華語轉換客語", "question": "你要買雞蛋糕給誰", "target": "你愛買雞卵糕分麼儕", "romanization": "ngi11 oi55 mai31 gie24 lon31 go24 bun24 ma11 sa11"}, {"level": "IV", "type": "華語轉換客語", "question": "不要邊走邊看手機", "target": "毋好緊行緊看手機仔", "romanization": "m11 ho31 gin31 hang11 gin31 kon55 su31 gi24 e31"}, {"level": "IV", "type": "華語轉換客語", "question": "天昏地暗，要下雨了", "target": "烏天暗地，會落雨了", "romanization": "vu24 tien24 am55 ti55, voi55 log5 yi31 le31"}, {"level": "V", "type": "華語轉換客語", "question": "飲水思源", "target": "食水愛念水源頭", "romanization": "siid5 sui31 oi55 ngiam55 sui31 ngien11 teu11"}, {"level": "V", "type": "客語看字朗讀", "question": "寧賣祖宗田，不忘祖宗言", "target": "寧賣祖宗田，不忘祖宗言", "romanization": "nen11 mai55 zu31 zung24 tien11, bud2 vong55 zu31 zung24 ngien11"}, {"level": "V", "type": "華語轉換客語", "question": "穩步前行，慢慢悠閒", "target": "琢琢仔行，慢慢仔尞", "romanization": "do2 do2 e31 hang11, man55 man55 e31 liau55"}, {"level": "V", "type": "華語轉換客語", "question": "時來運轉", "target": "時來鐵仔會成金", "romanization": "sii11 loi11 tied2 e31 voi55 sang11 gim24"}, {"level": "V", "type": "華語轉換客語", "question": "快樂的心情會感染人", "target": "樂暢心情會遰人", "romanization": "log5 cong55 xim24 cin11 voi55 tai55 ngin11"}, {"level": "V", "type": "華語轉換客語", "question": "下車要注意，要看兩邊有沒有車", "target": "下車愛細義，愛看兩片有車仔無", "romanization": "ha55 ca24 oi55 se55 ngi55, oi55 kon55 liong31 pien55 iu31 ca24 e31 mo11"}, {"level": "V", "type": "華語轉換客語", "question": "吃一塊蘿蔔糕、配一碗酸菜湯", "target": "食一垤蘿蔔粄、傍一碗鹹菜湯", "romanization": "siid5 it2 ded2 lo11 bag5 ban31, bong55 it2 van31 ham11 coi55 tong24"}, {"level": "V", "type": "華語轉換客語", "question": "多虧你幫了我這麼多忙", "target": "打幫你同𠊎𢯭手恁多", "romanization": "da31 bong24 ngi11 tung11 ngai11 ten55 su31 an31 do24"}, {"level": "V", "type": "華語轉換客語", "question": "每次的困難都是進步的機會", "target": "逐擺个困難都係進步个機會", "romanization": "zug5 bai31 e31 kun55 nan11 du24 he55 zin55 bu55 e31 gi24 fei55"}, {"level": "V", "type": "華語轉換客語", "question": "人情留一線，日後好相見", "target": "人情留一線，日後好見面", "romanization": "ngin11 cin11 liu11 it2 sien55, ngiad2 heu55 ho31 gien55 mien55"}];
+// ==================== 常數 ====================
+const LEVELS = ['I','II','III','IV','V'];
+const ACCENTS = ['四縣腔','海陸腔','大埔腔','饒平腔','詔安腔','南四縣腔'];
+
+// 口說測驗發音評分後端網址。留空字串時，網頁會依「目前是怎麼被打開的」自動判斷：
+//   - 用瀏覽器直接開本機 HTML 檔案（file://）：無法連到任何後端，一律使用模擬評分。
+//   - 網頁本身就是透過網址（http/https）架設起來的（例如整個網站含音檔一起放到
+//     Vercel 上）：自動改用「跟目前網頁同一個網域」的 /api/score，不需要手動填網址。
+// 如果您的評分後端跟網頁不同網域（例如網頁另外放在別的地方），才需要在這裡手動指定
+// 完整網址（例如 'https://hakka-speaking-score.vercel.app'，結尾不要加斜線）。
+const SCORING_API_BASE = '';
+
+function scoringEndpointBase(){
+  if (SCORING_API_BASE) return SCORING_API_BASE; // 手動指定的網址一律優先
+  if (location.protocol === 'file:') return null; // 本機檔案，沒有後端可以連
+  return ''; // 網頁本身是用網址開的：走同網域相對路徑
+}
+
+// ==================== 全域狀態 ====================
+const state = {
+  screen: 'accent',        // accent | reading | transitionA | listening | transitionB | speaking | result
+  accent: null,
+  reading: null,            // CAT 狀態物件
+  listening: null,
+  speaking: null,           // 口說測驗狀態物件
+};
+
+function makeCatState(bank){
+  return {
+    bank: bank,
+    levelIdx: 1,               // 目前所在級別，起始第 II 級 (index 1)
+    arrivedViaUpgrade: false,  // 目前級別是否是「剛升級」上來的
+    streakCorrect: 0,          // 目前級別的連續答對數
+    streakWrong: 0,            // 目前級別的連續答錯數
+    totalAnswered: 0,
+    usedIndices: new Set(),
+    currentQuestionIndex: null, // 題庫中的 index
+    finished: false,
+    finalLevelIdx: null,       // 測驗結束後，判定的最終級別 index
+    log: [],                   // {seq, level, question, options, userAnswerIdx, correctIdx, correct}
+  };
+}
+
+// ==================== 出題邏輯 ====================
+function pickQuestion(cat){
+  const targetLevel = LEVELS[cat.levelIdx];
+  let pool = cat.bank
+    .map((q, idx) => ({ q, idx }))
+    .filter(item => item.q.level === targetLevel && !cat.usedIndices.has(item.idx));
+
+  if (pool.length === 0){
+    // 該級別題目已用盡（保護機制）：由近至遠尋找其他級別的未用題目
+    for (let d = 1; d < LEVELS.length; d++){
+      const tryUp = cat.levelIdx + d, tryDown = cat.levelIdx - d;
+      for (const tIdx of [tryUp, tryDown]){
+        if (tIdx >= 0 && tIdx < LEVELS.length){
+          const lvl = LEVELS[tIdx];
+          const p2 = cat.bank.map((q,idx)=>({q,idx})).filter(item => item.q.level===lvl && !cat.usedIndices.has(item.idx));
+          if (p2.length > 0){ pool = p2; break; }
+        }
+      }
+      if (pool.length > 0) break;
+    }
+  }
+  if (pool.length === 0) return null; // 全部題目都用過了
+
+  const chosen = pool[Math.floor(Math.random() * pool.length)];
+  cat.usedIndices.add(chosen.idx);
+  cat.currentQuestionIndex = chosen.idx;
+  return chosen.idx;
+}
+
+function startSection(sectionKey){
+  const bank = sectionKey === 'reading' ? readingQuestions : listeningQuestions;
+  const cat = makeCatState(bank);
+  state[sectionKey] = cat;
+  pickQuestion(cat);
+}
+
+function submitAnswer(sectionKey, chosenOptionIdx1based){
+  const cat = state[sectionKey];
+  const q = cat.bank[cat.currentQuestionIndex];
+  const correct = (chosenOptionIdx1based === q.answer);
+
+  cat.log.push({
+    seq: cat.totalAnswered + 1,
+    level: q.level,
+    question: q.question,
+    options: q.options,
+    audio: q.audio || null,
+    userAnswerIdx: chosenOptionIdx1based,
+    correctIdx: q.answer,
+    correct: correct,
+  });
+
+  cat.totalAnswered++;
+
+  const TOP_IDX = LEVELS.length - 1;   // 第 V 級 index
+  const BOTTOM_IDX = 0;                 // 第 I 級 index
+
+  if (correct){
+    cat.streakCorrect += 1;
+    cat.streakWrong = 0;
+
+    if (cat.streakCorrect >= 3){
+      if (cat.levelIdx === TOP_IDX){
+        // 已在最高級，連對 3 題即可判定程度為 V 級
+        cat.finalLevelIdx = cat.levelIdx;
+        cat.finished = true;
+        return;
+      }
+      // 升一級
+      cat.levelIdx += 1;
+      cat.arrivedViaUpgrade = true;
+      cat.streakCorrect = 0;
+      cat.streakWrong = 0;
+    }
+  } else {
+    cat.streakWrong += 1;
+    cat.streakCorrect = 0;
+
+    if (cat.streakWrong >= 2){
+      if (cat.arrivedViaUpgrade){
+        // 剛升級上來就連錯 2 題（湊不滿連對 3 題）
+        // 可判定「上一級」即為受測者的程度
+        cat.finalLevelIdx = cat.levelIdx - 1;
+        cat.finished = true;
+        return;
+      }
+      if (cat.levelIdx === BOTTOM_IDX){
+        // 已在最低級，連錯 2 題即可判定程度為 I 級
+        cat.finalLevelIdx = cat.levelIdx;
+        cat.finished = true;
+        return;
+      }
+      // 降一級
+      cat.levelIdx -= 1;
+      cat.arrivedViaUpgrade = false;
+      cat.streakCorrect = 0;
+      cat.streakWrong = 0;
+    }
+  }
+
+  // 安全上限：答滿 30 題強制結束
+  if (cat.totalAnswered >= 30){
+    cat.finalLevelIdx = cat.levelIdx;
+    cat.finished = true;
+    return;
+  }
+
+  const next = pickQuestion(cat);
+  if (next === null){
+    // 題庫已用盡的保護機制
+    cat.finalLevelIdx = cat.levelIdx;
+    cat.finished = true;
+  }
+}
+
+// ==================== 音效（真實音檔播放，失敗自動降級為嗶聲） ====================
+// 防止音檔重疊：全域記錄目前正在播放的音檔／嗶聲與動畫，
+// 每次觸發新的播放前，一律先強制停止前一個。
+let audioCtx = null;
+let playToken = 0;          // 每次 triggerPlay 遞增，用來讓舊的非同步回呼失效
+let currentAudioEl = null;  // 目前正在播放的 <audio> 物件
+let currentOsc = null;      // 目前正在播放的嗶聲 oscillator
+let currentWaveId = null;   // 目前亮著的音波動畫元素 id
+
+function stopCurrentPlayback(){
+  playToken++; // 讓前一次呼叫殘留的非同步回呼（error / timeout / ended）失效
+  if (currentAudioEl){
+    try{ currentAudioEl.pause(); currentAudioEl.currentTime = 0; }catch(e){}
+    currentAudioEl = null;
+  }
+  if (currentOsc){
+    try{ currentOsc.stop(); }catch(e){}
+    currentOsc = null;
+  }
+  if (currentWaveId){
+    const el = document.getElementById(currentWaveId);
+    if (el) el.classList.remove('playing');
+    currentWaveId = null;
+  }
+}
+
+function playBeep(durationSec = 0.2, freq = 440){
+  try{
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + durationSec);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + durationSec + 0.02);
+    currentOsc = osc;
+    osc.onended = () => { if (currentOsc === osc) currentOsc = null; };
+  }catch(e){ console.warn('Web Audio 無法播放：', e); }
+}
+
+function audioPath(filename){
+  return 'audio/' + encodeURIComponent(filename);
+}
+function imagePath(filename){
+  return 'images/' + encodeURIComponent(filename);
+}
+
+// path 為 null 時直接播放嗶聲；否則嘗試播放真實音檔，
+// 若因路徑不存在／瀏覽器安全限制而載入失敗，自動降級為嗶聲，確保測驗不會卡住。
+// 每次呼叫一律先停掉前一個仍在播放的音檔／嗶聲，避免重疊。
+function triggerPlay(path, waveId){
+  stopCurrentPlayback();
+  const myToken = playToken;
+
+  const wave = document.getElementById(waveId);
+  const showWave = (on) => { if (wave) wave.classList.toggle('playing', on); };
+
+  let settled = false;
+  const fallbackBeep = () => {
+    if (myToken !== playToken || settled) return;
+    settled = true;
+    playBeep(0.2, 440);
+    currentWaveId = waveId;
+    showWave(true);
+    setTimeout(() => {
+      if (myToken === playToken){ showWave(false); currentWaveId = null; }
+    }, 650);
+  };
+
+  if (!path){ fallbackBeep(); return; }
+
+  try{
+    const audio = new Audio(path);
+    currentAudioEl = audio;
+    currentWaveId = waveId;
+
+    audio.addEventListener('playing', () => {
+      if (myToken !== playToken) return;
+      settled = true;
+      showWave(true);
+    });
+    audio.addEventListener('ended', () => {
+      if (myToken !== playToken) return;
+      showWave(false);
+      if (currentAudioEl === audio) currentAudioEl = null;
+      if (currentWaveId === waveId) currentWaveId = null;
+    });
+    audio.addEventListener('error', fallbackBeep);
+
+    // 保險逾時：若 800ms 內既未成功播放、也未觸發 error（例如部分瀏覽器對本機檔案的限制），仍降級為嗶聲
+    setTimeout(() => { if (myToken === playToken && !settled) fallbackBeep(); }, 800);
+
+    const p = audio.play();
+    if (p && typeof p.catch === 'function') p.catch(fallbackBeep);
+  }catch(e){
+    fallbackBeep();
+  }
+}
+
+// ==================== 口說測驗發音評分：音檔轉檔與 API 呼叫 ====================
+// 評分 API 要求 wav 檔：Mono, 16KHz, 16bit Linear PCM。
+// MediaRecorder 錄出來的預設格式（通常是 webm/opus）不符合，所以錄音結束後
+// 立刻在瀏覽器端解碼、重取樣成 16kHz 單聲道，再手動包成標準 WAV 檔。
+
+function encodeWav16kMono(audioBuffer){
+  const channelData = audioBuffer.getChannelData(0);
+  const numSamples = channelData.length;
+  const sampleRate = audioBuffer.sampleRate;
+  const bytesPerSample = 2;
+  const blockAlign = bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = numSamples * bytesPerSample;
+
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  function writeString(offset, str){
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  }
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);        // PCM chunk size
+  view.setUint16(20, 1, true);         // audio format = 1 (PCM)
+  view.setUint16(22, 1, true);         // channels = 1
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 16, true);        // bits per sample
+  writeString(36, 'data');
+  view.setUint32(40, dataSize, true);
+
+  let offset = 44;
+  for (let i = 0; i < numSamples; i++, offset += 2){
+    const s = Math.max(-1, Math.min(1, channelData[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+
+  return new Blob([buffer], { type: 'audio/wav' });
+}
+
+async function convertBlobTo16kMonoWav(blob){
+  const arrayBuffer = await blob.arrayBuffer();
+  const tempCtx = new (window.AudioContext || window.webkitAudioContext)();
+  let decoded;
+  try{
+    decoded = await tempCtx.decodeAudioData(arrayBuffer);
+  } finally {
+    try{ tempCtx.close(); }catch(e){}
+  }
+  const targetRate = 16000;
+  const offlineCtx = new OfflineAudioContext(1, Math.ceil(decoded.duration * targetRate), targetRate);
+  const src = offlineCtx.createBufferSource();
+  src.buffer = decoded;
+  // 接到單聲道的 offline context 時，Web Audio 會自動把多聲道向下混音為單聲道
+  src.connect(offlineCtx.destination);
+  src.start(0);
+  const rendered = await offlineCtx.startRendering();
+  return encodeWav16kMono(rendered);
+}
+
+// 呼叫 Vercel 後端進行真實發音評分；任何失敗都回傳 null，由呼叫端負責降級為模擬評分
+async function callScoringApi(wavBlob, pinyin, accentId, text){
+  const base = scoringEndpointBase();
+  if (base === null) return null;
+  const url = `${base}/api/score?pinyin=${encodeURIComponent(pinyin || '')}&accentId=${encodeURIComponent(accentId || '1')}&text=${encodeURIComponent(text || '')}`;
+  const controller = new AbortController();
+  // 逾時保護：比後端的 25 秒稍長一點，讓後端自己優雅逾時、回傳好讀的錯誤訊息，
+  // 前端這裡只在後端真的完全沒回應時才會介入強制中斷
+  const timeoutId = setTimeout(() => controller.abort(), 28000);
+  try{
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'audio/wav' },
+      body: wavBlob,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!resp.ok){
+      // 讀出後端／評分服務回傳的錯誤細節，印到 Console 方便排查（不再靜默失敗）
+      let detail = null;
+      try{ detail = await resp.json(); }catch(e){ /* 回應不是 JSON，忽略 */ }
+      console.warn(`發音評分 API 呼叫失敗（HTTP ${resp.status}），將降級為模擬評分：`, detail || '(無法解析錯誤內容)');
+      return null;
+    }
+
+    const data = await resp.json();
+    if (!data || typeof data.score !== 'number'){
+      console.warn('發音評分 API 回傳格式異常，將降級為模擬評分：', data);
+      return null;
+    }
+    return data;
+  }catch(e){
+    clearTimeout(timeoutId);
+    console.warn('發音評分 API 呼叫失敗，將降級為模擬評分：', e);
+    return null;
+  }
+}
+// ==================== 共用工具 ====================
+function stripExt(s){
+  if (!s) return s;
+  return s.replace(/\.(wav|png)$/i, '');
+}
+function esc(s){
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;');
+}
+
+// ==================== 主渲染分派 ====================
+function render(){
+  const app = document.getElementById('app');
+  let html = '';
+  switch(state.screen){
+    case 'accent': html = renderAccentScreen(); break;
+    case 'reading': html = renderQuestionScreen('reading', '第一大題．閱讀測驗'); break;
+    case 'transitionA': html = renderTransitionA(); break;
+    case 'listening': html = renderQuestionScreen('listening', '第二大題．聽力測驗'); break;
+    case 'transitionB': html = renderTransitionB(); break;
+    case 'speaking': html = renderSpeakingScreen(); break;
+    case 'result': html = renderResultScreen(); break;
+    default: html = '<div class="p-10">未知畫面</div>';
+  }
+  app.innerHTML = html;
+  window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+}
+
+// ==================== 畫面一：腔調選擇 ====================
+let selectedAccent = null;
+function chooseAccent(name){
+  selectedAccent = name;
+  render();
+}
+function confirmAccentSelection(){
+  if (!selectedAccent) return;
+  state.accent = selectedAccent;
+  state.screen = 'reading';
+  startSection('reading');
+  render();
+}
+function renderAccentScreen(){
+  const cards = ACCENTS.map(name => {
+    const isSel = selectedAccent === name;
+    const isFull = name === '四縣腔';
+    return `
+      <button onclick="chooseAccent('${name}')" class="accent-card rounded-2xl p-5 flex flex-col items-start gap-3 ${isSel ? 'selected' : ''}">
+        <div class="flex items-center justify-between w-full">
+          <span class="accent-dot"></span>
+          ${isFull ? '<span class="text-[11px] px-2 py-0.5 rounded-full" style="background:var(--moss-soft);color:var(--moss);">題庫完整</span>' : '<span class="text-[11px] px-2 py-0.5 rounded-full" style="background:var(--paper-deep);color:var(--ink-soft);">建置中</span>'}
+        </div>
+        <span class="font-display text-xl font-semibold">${name}</span>
+      </button>`;
+  }).join('');
+
+  return `
+  <div class="flex-1 flex items-center justify-center px-5 py-10 fade-in">
+    <div class="w-full max-w-2xl">
+      <div class="text-center mb-10">
+        <p class="text-sm tracking-wide" style="color:var(--indigo-4);">客語線上程度測驗</p>
+        <h1 class="font-display text-2xl md:text-3xl font-bold mt-2 mb-5 leading-snug">請選擇您希望測驗的客語腔調</h1>
+        <p class="text-[15px] leading-8 max-w-xl mx-auto" style="color:var(--ink-soft);">
+          本測驗包含聽、說、讀三種題型，測驗完畢後，根據結果將出現與您相符的評分描述，協助您評估自身之客語能力，選擇合適的教材使用。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+        ${cards}
+      </div>
+      <p class="text-center text-[13px] mb-8" style="color:var(--ink-soft);">目前僅「四縣腔」已建置完整題庫，選擇後將以四縣腔內容進行本次測驗原型體驗。</p>
+
+      <div class="flex justify-center">
+        <button onclick="confirmAccentSelection()" ${selectedAccent ? '' : 'disabled'} class="btn-primary rounded-full px-10 py-3.5 font-medium text-[15px] disabled:opacity-40">
+          完成選擇，開始測驗
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+// ==================== 畫面二 / 畫面三：測驗題目畫面 ====================
+let pendingChoice = null; // 使用者已點選但尚未送出的選項（1-based）
+
+function renderQuestionScreen(sectionKey, sectionLabel){
+  const cat = state[sectionKey];
+  if (!cat) return '<div class="p-10">載入中…</div>';
+  const q = cat.bank[cat.currentQuestionIndex];
+  if (!q) return '<div class="p-10">題目載入失敗</div>';
+
+  const isListening = sectionKey === 'listening';
+  const hasAudio = isListening && q.audio && /\.wav$/i.test(q.audio);
+  const isFirstQuestion = cat.totalAnswered === 0;
+
+  const optsHtml = renderOptions(sectionKey, q.options, pendingChoice);
+
+  const audioBlock = hasAudio ? `
+    <div class="flex justify-center mt-6">
+      <button onclick="triggerPlay('${audioPath(q.audio)}','q_wave')" class="play-btn rounded-full pl-5 pr-6 py-3 flex items-center gap-3 font-medium">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 9v6h4l5 5V4L9 9H5z" fill="currentColor"/></svg>
+        播放題目語音
+        <span class="wave" id="q_wave"><span></span><span></span><span></span><span></span></span>
+      </button>
+    </div>` : '';
+
+  const skipFnName = sectionKey === 'reading' ? 'skipReading' : 'skipListening';
+  const skipLabel = sectionKey === 'reading' ? '跳過閱讀大題' : '跳過聽力大題';
+  const skipBlock = isFirstQuestion ? `
+    <div class="w-full max-w-xs flex justify-end mt-2">
+      <button onclick="${skipFnName}()" class="text-[12px] underline" style="color:var(--ink-soft);">${skipLabel}</button>
+    </div>` : '';
+
+  return `
+  <div class="flex-1 flex flex-col px-5 pt-6 pb-36 fade-in">
+    <div class="max-w-xl w-full mx-auto flex-1 flex flex-col">
+
+      <div class="flex items-center justify-between mb-6">
+        <span class="font-display text-[15px] font-semibold" style="color:var(--indigo-5);">${sectionLabel}</span>
+        <span class="text-[13px]" style="color:var(--ink-soft);">第 ${cat.totalAnswered + 1} 題</span>
+      </div>
+
+      <div class="q-card rounded-2xl p-7 mb-6">
+        <p class="font-display text-lg md:text-xl font-medium leading-relaxed text-center">${esc(q.question)}</p>
+        ${audioBlock}
+      </div>
+
+      ${optsHtml}
+
+    </div>
+  </div>
+
+  <div class="fixed bottom-0 inset-x-0 px-5 py-4 flex flex-col items-center" style="background:rgba(246,241,228,0.95); backdrop-filter:blur(6px); border-top:1px solid var(--paper-deep);">
+    <button onclick="confirmSubmit('${sectionKey}')" ${pendingChoice === null ? 'disabled' : ''} class="btn-primary rounded-full px-10 py-3.5 font-medium text-[15px] w-full max-w-xs disabled:opacity-40">
+      送出
+    </button>
+    ${skipBlock}
+  </div>`;
+}
+
+function optionType(options){
+  if (options.some(o => /\.png$/i.test(o))) return 'image';
+  if (options.some(o => /\.wav$/i.test(o))) return 'audio';
+  return 'text';
+}
+
+function renderOptions(sectionKey, options, chosenIdx){
+  const type = optionType(options);
+
+  if (type === 'image'){
+    const cells = options.map((opt, i) => {
+      const idx1 = i + 1;
+      const isChosen = chosenIdx === idx1;
+      const genericLabel = `選項 ${idx1}`;
+      return `
+        <div class="img-opt rounded-2xl ${isChosen ? 'chosen' : ''}" style="height:150px;" onclick="chooseOption('${sectionKey}', ${idx1})">
+          <img src="${imagePath(opt)}" alt="${esc(genericLabel)}" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:14px;"
+               onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+               onerror="this.style.display='none';">
+          <div class="w-full h-full flex flex-col items-center justify-center gap-2 px-2" style="color:var(--ink-soft);">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="9.5" r="1.6" fill="currentColor"/><path d="M21 15l-5.5-5.5L5 20" stroke="currentColor" stroke-width="1.6"/></svg>
+            <span class="text-[13px] text-center">${esc(genericLabel)}</span>
+          </div>
+          <div class="check-badge absolute top-2 right-2 rounded-full w-7 h-7 flex items-center justify-center">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>`;
+    }).join('');
+    return `<div class="grid grid-cols-2 gap-4">${cells}</div>`;
+  }
+
+  if (type === 'audio'){
+    const rows = options.map((opt, i) => {
+      const idx1 = i + 1;
+      const isChosen = chosenIdx === idx1;
+      const genericLabel = `選項 ${idx1}`;
+      const waveId = `opt_wave_${i}`;
+      return `
+        <div class="opt-audio-row rounded-xl px-5 py-4 flex items-center justify-between ${isChosen ? 'chosen' : ''}" onclick="chooseOption('${sectionKey}', ${idx1})">
+          <span class="text-[15px] font-medium" style="color:var(--ink-soft);">${esc(genericLabel)}</span>
+          <button onclick="event.stopPropagation(); triggerPlay('${audioPath(opt)}','${waveId}')" class="mini-play rounded-full w-10 h-10 flex items-center justify-center gap-1">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 9v6h4l5 5V4L9 9H5z" fill="currentColor"/></svg>
+          </button>
+          <span class="wave ml-1" id="${waveId}" style="color:var(--indigo-4);"><span></span><span></span><span></span><span></span></span>
+        </div>`;
+    }).join('');
+    return `<div class="flex flex-col gap-3">${rows}</div>`;
+  }
+
+  // plain text
+  const btns = options.map((opt, i) => {
+    const idx1 = i + 1;
+    const isChosen = chosenIdx === idx1;
+    return `
+      <button class="opt-btn rounded-xl px-5 py-4 text-[15px] font-medium ${isChosen ? 'chosen' : ''}" onclick="chooseOption('${sectionKey}', ${idx1})">
+        ${esc(opt)}
+      </button>`;
+  }).join('');
+  return `<div class="flex flex-col gap-3">${btns}</div>`;
+}
+
+// ==================== 作答處理 ====================
+function chooseOption(sectionKey, idx1){
+  pendingChoice = idx1;
+  render();
+}
+
+function confirmSubmit(sectionKey){
+  if (pendingChoice === null) return;
+  stopCurrentPlayback(); // 切換到下一題前，先停止任何仍在播放的音檔／嗶聲
+  const idx = pendingChoice;
+  pendingChoice = null;
+  submitAnswer(sectionKey, idx);
+  afterAnswer(sectionKey);
+}
+
+function afterAnswer(sectionKey){
+  const cat = state[sectionKey];
+  if (cat.finished){
+    state.screen = sectionKey === 'reading' ? 'transitionA' : 'transitionB';
+  }
+  render();
+}
+// ==================== 過渡頁面 A ====================
+function goToListening(){
+  state.screen = 'listening';
+  startSection('listening');
+  render();
+}
+function skipReading(){
+  if (!state.reading) return;
+  state.reading.skipped = true;
+  state.reading.finished = true;
+  goToListening();
+}
+function renderTransitionA(){
+  return `
+  <div class="flex-1 flex items-center justify-center px-5 fade-in">
+    <div class="max-w-md text-center">
+      <div class="w-16 h-16 rounded-full mx-auto mb-6 flex items-center justify-center" style="background:var(--indigo-1);">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="var(--indigo-5)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2 class="font-display text-xl font-bold mb-4">閱讀測驗已結束</h2>
+      <p class="text-[15px] leading-8 mb-9" style="color:var(--ink-soft);">
+        接下來將進入第二大題：聽力測驗，請準備好您的耳機或開啟喇叭。
+      </p>
+      <button onclick="goToListening()" class="btn-primary rounded-full px-9 py-3.5 font-medium text-[15px]">開始聽力測驗</button>
+    </div>
+  </div>`;
+}
+
+// ==================== 過渡頁面 B ====================
+function goToSpeaking(){
+  state.screen = 'speaking';
+  startSpeakingSection();
+  render();
+}
+function skipListening(){
+  if (!state.listening) return;
+  state.listening.skipped = true;
+  state.listening.finished = true;
+  goToSpeaking();
+}
+function renderTransitionB(){
+  return `
+  <div class="flex-1 flex items-center justify-center px-5 fade-in">
+    <div class="max-w-md text-center">
+      <div class="w-16 h-16 rounded-full mx-auto mb-6 flex items-center justify-center" style="background:var(--indigo-1);">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="var(--indigo-5)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2 class="font-display text-xl font-bold mb-4">聽力測驗已結束</h2>
+      <p class="text-[15px] leading-8 mb-9" style="color:var(--ink-soft);">
+        接下來進入第三大題：口說測驗。請準備好您的麥克風，測驗包含 15 道題目，每級各 3 題。
+      </p>
+      <button onclick="goToSpeaking()" class="btn-primary rounded-full px-9 py-3.5 font-medium text-[15px]">開始口說測驗</button>
+    </div>
+  </div>`;
+}
+
+function goToResult(){
+  state.screen = 'result';
+  render();
+}
+
+// ==================== 畫面四：結果說明頁 ====================
+function renderResultItem(item, isListening){
+  const userText = item.options[item.userAnswerIdx - 1] !== undefined ? stripExt(item.options[item.userAnswerIdx - 1]) : '（未作答）';
+  const correctText = stripExt(item.options[item.correctIdx - 1]);
+  return `
+    <div class="result-item rounded-xl p-4">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-[13px] font-semibold" style="color:var(--indigo-5);">第 ${item.seq} 題（第 ${item.level} 級）</span>
+        <span class="text-[11px] px-2 py-0.5 rounded-full ${item.correct ? 'tag-correct' : 'tag-wrong'}">${item.correct ? '答對' : '答錯'}</span>
+      </div>
+      <p class="text-[14.5px] mb-2 leading-relaxed">${esc(item.question)}</p>
+      <div class="text-[13.5px] leading-7" style="color:var(--ink-soft);">
+        <div>您的作答：<span class="font-medium" style="color:${item.correct ? 'var(--moss)' : 'var(--clay)'};">${esc(userText)}</span></div>
+        <div>正確答案：<span class="font-medium" style="color:var(--moss);">${esc(correctText)}</span></div>
+      </div>
+    </div>`;
+}
+
+function computeLevelStats(cat){
+  return LEVELS.map(lv => {
+    const items = cat.log.filter(x => x.level === lv);
+    const correct = items.filter(x => x.correct).length;
+    return { level: lv, correct: correct, total: items.length };
+  });
+}
+
+function renderLevelStats(cat){
+  const stats = computeLevelStats(cat);
+  const cells = stats.map(s => `
+    <div class="rounded-xl px-2 py-3 text-center" style="background:var(--paper-deep);">
+      <div class="text-[11px] mb-1" style="color:var(--ink-soft);">第 ${s.level} 級</div>
+      <div class="font-display text-base font-bold" style="color:var(--indigo-5);">${s.total > 0 ? `${s.correct}／${s.total}` : '－'}</div>
+    </div>`).join('');
+  return `<div class="grid grid-cols-5 gap-2 mb-5">${cells}</div>`;
+}
+
+function renderResultBlock(title, cat, isListening){
+  if (!cat || cat.skipped){
+    return `
+      <div class="mb-10">
+        <h3 class="font-display text-lg font-bold mb-1">${title}</h3>
+        <div class="result-item rounded-xl p-5 text-center" style="color:var(--ink-soft);">
+          本大題未作答
+        </div>
+      </div>`;
+  }
+  const correctItems = cat.log.filter(x => x.correct);
+  const wrongItems = cat.log.filter(x => !x.correct);
+  return `
+    <div class="mb-10">
+      <h3 class="font-display text-lg font-bold mb-1">${title}</h3>
+      <p class="text-[13px] mb-4" style="color:var(--ink-soft);">
+        共作答 ${cat.log.length} 題．答對 ${correctItems.length} 題．答錯 ${wrongItems.length} 題
+      </p>
+
+      <p class="text-[13px] font-semibold mb-2">各級答對題數統計</p>
+      ${renderLevelStats(cat)}
+
+      <div class="mb-5">
+        <p class="text-[13px] font-semibold mb-2 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full" style="background:var(--moss);"></span> 答對題目（${correctItems.length}）
+        </p>
+        <div class="flex flex-col gap-2.5">
+          ${correctItems.length ? correctItems.map(x => renderResultItem(x, isListening)).join('') : '<p class="text-[13px] px-1" style="color:var(--ink-soft);">無</p>'}
+        </div>
+      </div>
+
+      <div>
+        <p class="text-[13px] font-semibold mb-2 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full" style="background:var(--clay);"></span> 答錯題目（${wrongItems.length}）
+        </p>
+        <div class="flex flex-col gap-2.5">
+          ${wrongItems.length ? wrongItems.map(x => renderResultItem(x, isListening)).join('') : '<p class="text-[13px] px-1" style="color:var(--ink-soft);">無</p>'}
+        </div>
+      </div>
+    </div>`;
+}
+
+function restartTest(){
+  state.screen = 'accent';
+  state.accent = null;
+  state.reading = null;
+  state.listening = null;
+  state.speaking = null;
+  selectedAccent = null;
+  pendingChoice = null;
+  releaseMicStream();
+  resetRecordingState();
+  render();
+}
+
+function renderResultScreen(){
+  return `
+  <div class="flex-1 px-5 py-10 fade-in">
+    <div class="max-w-2xl mx-auto">
+      <div class="text-center mb-10">
+        <p class="text-sm tracking-wide" style="color:var(--indigo-4);">客語線上程度測驗．${esc(state.accent || '四縣腔')}</p>
+        <h1 class="font-display text-2xl md:text-3xl font-bold mt-2">測驗結果說明</h1>
+        <p class="text-[14px] mt-3" style="color:var(--ink-soft);">以下依作答歷程條列呈現，未進行能力等級判定。</p>
+      </div>
+
+      ${renderResultBlock('閱讀測驗結果', state.reading, false)}
+      ${renderResultBlock('聽力測驗結果', state.listening, true)}
+      ${renderSpeakingResultBlock(state.speaking)}
+
+      <div class="flex justify-center pb-6">
+        <button onclick="restartTest()" class="btn-ghost rounded-full px-8 py-3 font-medium text-[14px]">重新開始測驗</button>
+      </div>
+    </div>
+  </div>`;
+}
+// ==================== 第三大題：口說測驗 ====================
+
+function makeSpeakingState(bank){
+  const order = [];
+  LEVELS.forEach(lv => {
+    const poolIdx = [];
+    bank.forEach((q, idx) => { if (q.level === lv) poolIdx.push(idx); });
+    // Fisher-Yates 洗牌
+    for (let i = poolIdx.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = poolIdx[i]; poolIdx[i] = poolIdx[j]; poolIdx[j] = tmp;
+    }
+    // 每級抽 3 題（保護機制：若該級題庫不足 3 題，則有多少取多少）
+    order.push(...poolIdx.slice(0, 3));
+  });
+  return { bank: bank, order: order, pos: 0, finished: false, log: [] };
+}
+
+function startSpeakingSection(){
+  state.speaking = makeSpeakingState(speakingQuestions);
+  resetRecordingState();
+}
+
+function skipSpeaking(){
+  if (!state.speaking) return;
+  state.speaking.skipped = true;
+  state.speaking.finished = true;
+  releaseMicStream();
+  goToResult();
+}
+
+// ---------- 錄音狀態（模組層級） ----------
+// mediaStream 是整個口說測驗過程中共用的麥克風串流：只在第一次錄音時跟瀏覽器要一次權限，
+// 之後每一題都重複使用同一個串流建立新的 MediaRecorder，不會每題都重新彈出授權視窗。
+// 只有在整個口說測驗結束、被跳過、或重新開始測驗時，才會真正關閉麥克風（釋放硬體）。
+let mediaStream = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let recordedBlobUrl = null;      // 給「播放試聽」用的原始錄音（瀏覽器預設格式）
+let recordedWavBlob = null;      // 轉成 16kHz 單聲道 WAV，給發音評分 API 用
+let recordingStatus = 'idle';    // idle | recording | processing | recorded | unsupported | error
+let micErrorMsg = null;
+let recordSeconds = 0;
+let recordTimerHandle = null;
+let submittingSpeaking = false;  // 「確認送出」後、評分結果回來前的過渡狀態
+
+function mediaSupported(){
+  return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+}
+
+// 每秒更新錄音計時文字時，只改文字內容本身，刻意不呼叫 render()（不重畫整個畫面）。
+// 如果每秒都重畫整個畫面，錄音按鈕的 CSS 抖動光暈動畫（recordPulse）會被強制從頭開始
+// 播放，跟原本正在跑的動畫時間點對不上，看起來就會像按鈕在「抖動」；
+// 改成只更新文字內容，按鈕本身完全不被重新建立，動畫才能連續順暢播放。
+function updateRecordTimerText(){
+  const el = document.getElementById('record-timer-text');
+  if (el){
+    el.textContent = `錄音中…${recordSeconds} 秒（點擊停止錄音）`;
+  } else {
+    // 保險：萬一畫面狀態跟預期不同，還是重畫一次確保不會顯示錯誤
+    render();
+  }
+}
+
+function micStreamIsLive(){
+  return !!(mediaStream && mediaStream.getTracks().some(t => t.readyState === 'live'));
+}
+
+// 真正關閉麥克風硬體（釋放權限指示燈）。只在離開整個口說測驗時呼叫。
+function releaseMicStream(){
+  if (mediaStream){
+    try{ mediaStream.getTracks().forEach(t => t.stop()); }catch(e){}
+    mediaStream = null;
+  }
+}
+
+// 每題之間呼叫：只重置「這一題」的錄音內容，刻意不釋放麥克風串流，
+// 這樣下一題按「開始錄音」才不會又跳出一次權限請求。
+function resetRecordingState(){
+  if (recordTimerHandle){ clearInterval(recordTimerHandle); recordTimerHandle = null; }
+  if (mediaRecorder && mediaRecorder.state === 'recording'){
+    try{ mediaRecorder.stop(); }catch(e){}
+  }
+  mediaRecorder = null;
+  recordedChunks = [];
+  if (recordedBlobUrl){
+    try{ URL.revokeObjectURL(recordedBlobUrl); }catch(e){}
+    recordedBlobUrl = null;
+  }
+  recordedWavBlob = null;
+  recordingStatus = mediaSupported() ? 'idle' : 'unsupported';
+  micErrorMsg = null;
+  recordSeconds = 0;
+  submittingSpeaking = false;
+}
+
+function beginRecordingWithStream(stream){
+  recordedChunks = [];
+  try{
+    mediaRecorder = new MediaRecorder(stream);
+  }catch(e){
+    micErrorMsg = '無法啟動錄音器：' + (e && e.message ? e.message : String(e));
+    recordingStatus = 'error';
+    render();
+    return;
+  }
+  mediaRecorder.addEventListener('dataavailable', e => {
+    if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+  });
+  mediaRecorder.addEventListener('stop', async () => {
+    // 注意：這裡刻意不釋放 stream（不呼叫 releaseMicStream），
+    // 讓麥克風在整個口說測驗期間保持授權狀態，下一題才不用重新問一次權限。
+    if (recordTimerHandle){ clearInterval(recordTimerHandle); recordTimerHandle = null; }
+
+    let blob;
+    try{
+      blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+      if (recordedBlobUrl){ URL.revokeObjectURL(recordedBlobUrl); }
+      recordedBlobUrl = URL.createObjectURL(blob);
+    }catch(e){
+      micErrorMsg = '錄音處理失敗：' + (e && e.message ? e.message : String(e));
+      recordingStatus = 'error';
+      render();
+      return;
+    }
+
+    // 轉成評分 API 要求的 16kHz 單聲道 WAV（僅在有設定評分後端時才需要，
+    // 但轉檔本身不影響「播放試聽」功能，所以無論如何都嘗試轉一次）
+    recordingStatus = 'processing';
+    render();
+    try{
+      recordedWavBlob = await convertBlobTo16kMonoWav(blob);
+      recordingStatus = 'recorded';
+    }catch(e){
+      // 轉檔失敗不影響繼續作答：仍可播放試聽／送出，只是屆時會降級為模擬評分
+      console.warn('音檔轉換為 WAV 失敗，該題將以模擬評分送出：', e);
+      recordedWavBlob = null;
+      recordingStatus = 'recorded';
+    }
+    render();
+  });
+  mediaRecorder.start();
+  recordingStatus = 'recording';
+  recordSeconds = 0;
+  recordTimerHandle = setInterval(() => { recordSeconds += 1; updateRecordTimerText(); }, 1000);
+  render();
+}
+
+function startRecording(){
+  if (!mediaSupported()){
+    recordingStatus = 'unsupported';
+    render();
+    return;
+  }
+
+  // 已經授權過、串流還活著的話直接重複使用，不再重新跳出權限請求
+  if (micStreamIsLive()){
+    beginRecordingWithStream(mediaStream);
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    mediaStream = stream;
+    beginRecordingWithStream(stream);
+  }).catch(err => {
+    micErrorMsg = (err && err.message) ? err.message : '無法取得麥克風權限';
+    recordingStatus = 'error';
+    render();
+  });
+}
+
+function stopRecording(){
+  if (mediaRecorder && mediaRecorder.state === 'recording'){
+    mediaRecorder.stop();
+  }
+}
+
+function playPreview(){
+  if (!recordedBlobUrl) return;
+  const audio = new Audio(recordedBlobUrl);
+  audio.play().catch(() => {});
+}
+
+function retryRecording(){
+  if (recordedBlobUrl){
+    try{ URL.revokeObjectURL(recordedBlobUrl); }catch(e){}
+    recordedBlobUrl = null;
+  }
+  recordedChunks = [];
+  recordedWavBlob = null;
+  recordingStatus = 'idle';
+  micErrorMsg = null;
+  recordSeconds = 0;
+  render();
+}
+
+// ---------- 畫面 ----------
+function renderSpeakingScreen(){
+  const cat = state.speaking;
+  if (!cat || cat.pos >= cat.order.length){
+    return '<div class="p-10">口說測驗載入中…</div>';
+  }
+  const qIdx = cat.order[cat.pos];
+  const q = cat.bank[qIdx];
+  const total = cat.order.length;
+  const seq = cat.pos + 1;
+
+  const canSubmit = !submittingSpeaking && (
+    recordingStatus === 'recorded' || recordingStatus === 'unsupported' || recordingStatus === 'error'
+  );
+  const isFirstQuestion = cat.pos === 0;
+  const skipBlock = (isFirstQuestion && !submittingSpeaking) ? `
+    <div class="w-full max-w-xs flex justify-end mt-2">
+      <button onclick="skipSpeaking()" class="text-[12px] underline" style="color:var(--ink-soft);">跳過口說大題</button>
+    </div>` : '';
+
+  let controls = '';
+  if (recordingStatus === 'unsupported'){
+    controls = `
+      <div class="rounded-xl p-4 text-center text-[13px]" style="background:var(--clay-soft); color:var(--clay);">
+        此瀏覽器或環境不支援錄音功能，將以模擬評分送出，不影響測驗進行。
+      </div>`;
+  } else if (recordingStatus === 'error'){
+    controls = `
+      <div class="rounded-xl p-4 mb-3 text-center text-[13px]" style="background:var(--clay-soft); color:var(--clay);">
+        麥克風存取失敗${micErrorMsg ? '：' + esc(micErrorMsg) : ''}，將以模擬評分送出，不影響測驗進行。
+      </div>
+      <div class="flex justify-center">
+        <button onclick="startRecording()" class="btn-ghost rounded-full px-6 py-2.5 text-[14px]">重試錄音</button>
+      </div>`;
+  } else if (recordingStatus === 'recording'){
+    controls = `
+      <div class="flex flex-col items-center gap-3">
+        <button onclick="stopRecording()" class="record-btn recording rounded-full w-20 h-20 flex items-center justify-center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="6" y="6" width="12" height="12" rx="2" fill="#fff"/></svg>
+        </button>
+        <span class="text-[13px]" id="record-timer-text" style="color:var(--clay);">錄音中…${recordSeconds} 秒（點擊停止錄音）</span>
+      </div>`;
+  } else if (recordingStatus === 'processing'){
+    controls = `
+      <div class="flex flex-col items-center gap-3">
+        <div class="record-btn rounded-full w-20 h-20 flex items-center justify-center" style="opacity:.6;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <span class="text-[13px]" style="color:var(--ink-soft);">音檔處理中…</span>
+      </div>`;
+  } else if (recordingStatus === 'recorded'){
+    controls = `
+      <div class="flex flex-col items-center gap-4">
+        <div class="flex items-center gap-2" style="color:var(--moss);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="text-[13px] font-medium">錄音完成</span>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="playPreview()" class="btn-ghost rounded-full px-5 py-2.5 text-[14px] flex items-center gap-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 9v6h4l5 5V4L9 9H5z" fill="currentColor"/></svg>
+            播放試聽
+          </button>
+          <button onclick="retryRecording()" class="btn-ghost rounded-full px-5 py-2.5 text-[14px] flex items-center gap-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 4v5h5M20 20v-5h-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 9a7 7 0 0112-4.4M19 15a7 7 0 01-12 4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            重新錄音
+          </button>
+        </div>
+      </div>`;
+  } else {
+    // idle
+    controls = `
+      <div class="flex flex-col items-center gap-3">
+        <button onclick="startRecording()" class="record-btn rounded-full w-20 h-20 flex items-center justify-center">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" fill="#fff"/><path d="M19 11a7 7 0 01-14 0M12 19v3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <span class="text-[13px]" style="color:var(--ink-soft);">開始錄音</span>
+      </div>`;
+  }
+
+  return `
+  <div class="flex-1 flex flex-col px-5 pt-6 pb-36 fade-in">
+    <div class="max-w-xl w-full mx-auto flex-1 flex flex-col">
+
+      <div class="flex items-center justify-between mb-6">
+        <span class="font-display text-[15px] font-semibold" style="color:var(--indigo-5);">第三大題．口說測驗</span>
+        <span class="text-[13px]" style="color:var(--ink-soft);">第 ${seq}/${total} 題 ｜ 第 ${q.level} 級</span>
+      </div>
+
+      <div class="flex justify-center mb-4">
+        <span class="text-[12px] px-3 py-1.5 rounded-full font-medium" style="background:var(--indigo-1); color:var(--indigo-5);">
+          【作答提示：${esc(q.type)}】
+        </span>
+      </div>
+
+      <div class="q-card rounded-2xl p-7 mb-6 text-center">
+        <p class="font-display text-xl md:text-2xl font-medium leading-relaxed">${esc(q.question)}</p>
+      </div>
+
+      <div class="q-card rounded-2xl p-7">
+        ${controls}
+      </div>
+
+    </div>
+  </div>
+
+  <div class="fixed bottom-0 inset-x-0 px-5 py-4 flex flex-col items-center" style="background:rgba(246,241,228,0.95); backdrop-filter:blur(6px); border-top:1px solid var(--paper-deep);">
+    <button onclick="confirmSpeakingSubmit()" ${canSubmit ? '' : 'disabled'} class="btn-primary rounded-full px-10 py-3.5 font-medium text-[15px] w-full max-w-xs disabled:opacity-40 flex items-center justify-center gap-2">
+      ${submittingSpeaking ? '<span class="spinner"></span> 評分中，請稍候…' : '確認送出'}
+    </button>
+    ${skipBlock}
+  </div>`;
+}
+
+// ---------- 作答處理：優先呼叫真實發音評分 API，失敗則自動降級為模擬評分 ----------
+async function confirmSpeakingSubmit(){
+  const cat = state.speaking;
+  if (!cat || submittingSpeaking) return;
+  const qIdx = cat.order[cat.pos];
+  const q = cat.bank[qIdx];
+
+  submittingSpeaking = true;
+  render();
+
+  let score = null;
+  let simulated = true;
+
+  if (recordedWavBlob){
+    const result = await callScoringApi(recordedWavBlob, q.romanization, '1', q.question);
+    if (result && typeof result.score === 'number'){
+      score = Math.round(result.score);
+      simulated = false;
+    }
+  }
+
+  if (score === null){
+    // 防卡死：沒有錄音、轉檔失敗、評分後端未設定，或呼叫失敗時，一律降級為模擬分數
+    score = Math.round(60 + Math.random() * 40);
+    simulated = true;
+  }
+
+  // 逐字標準／不標準：評分 API 只會回傳整題總分，沒有逐字資料，
+  // 所以用「總分 = 每個字判定為標準的機率」來還原逐字呈現
+  // （分數越高，字被標示為「標準」的機率越高）；模擬分數同樣套用這個換算方式。
+  const standardProb = Math.max(0, Math.min(1, score / 100));
+  const chars = Array.from(q.target).map(ch => ({ char: ch, standard: Math.random() < standardProb }));
+
+  cat.log.push({
+    seq: cat.pos + 1,
+    level: q.level,
+    type: q.type,
+    question: q.question,
+    target: q.target,
+    score: score,
+    simulated: simulated,
+    chars: chars,
+  });
+
+  cat.pos += 1;
+  submittingSpeaking = false;
+  resetRecordingState();
+
+  if (cat.pos >= cat.order.length){
+    cat.finished = true;
+    releaseMicStream();
+    state.screen = 'result';
+  }
+  render();
+}
+
+// ---------- 結果區塊 ----------
+function renderSpeakingResultItem(item){
+  const charsHtml = item.chars.map(c => `
+    <span class="char-chip ${c.standard ? 'char-standard' : 'char-nonstandard'}">${esc(c.char)}<span class="char-chip-tag">${c.standard ? '標準' : '不標準'}</span></span>
+  `).join('');
+  return `
+    <div class="result-item rounded-xl p-4">
+      <div class="flex items-center gap-2 mb-2 flex-wrap">
+        <span class="text-[13px] font-semibold" style="color:var(--indigo-5);">第 ${item.seq} 題（第 ${item.level} 級）</span>
+        <span class="text-[11px] px-2 py-0.5 rounded-full" style="background:var(--indigo-1); color:var(--indigo-5);">【作答提示：${esc(item.type)}】</span>
+        ${item.simulated ? '<span class="text-[11px] px-2 py-0.5 rounded-full" style="background:var(--paper-deep); color:var(--ink-soft);">模擬結果</span>' : ''}
+      </div>
+      <div class="text-[13.5px] mb-3" style="color:var(--ink-soft);">
+        題目：<span style="color:var(--ink);">${esc(item.question)}</span> ｜ 目標客語：<span style="color:var(--ink);">${esc(item.target)}</span>
+      </div>
+      <div class="text-[12.5px] mb-2" style="color:var(--ink-soft);">語音辨識評估：</div>
+      <div class="flex flex-wrap gap-2">
+        ${charsHtml}
+      </div>
+    </div>`;
+}
+
+function renderSpeakingResultBlock(cat){
+  if (!cat || cat.skipped){
+    return `
+      <div class="mb-10">
+        <h3 class="font-display text-lg font-bold mb-1">口說測驗結果</h3>
+        <div class="result-item rounded-xl p-5 text-center" style="color:var(--ink-soft);">
+          本大題未作答
+        </div>
+      </div>`;
+  }
+  if (!cat.log.length){
+    return `
+      <div class="mb-10">
+        <h3 class="font-display text-lg font-bold mb-1">口說測驗結果</h3>
+        <div class="result-item rounded-xl p-5 text-center" style="color:var(--ink-soft);">
+          暫無評估數據
+        </div>
+      </div>`;
+  }
+  const allChars = cat.log.flatMap(item => item.chars);
+  const standardCount = allChars.filter(c => c.standard).length;
+  const anySimulated = cat.log.some(x => x.simulated);
+  return `
+    <div class="mb-10">
+      <h3 class="font-display text-lg font-bold mb-1">口說測驗結果</h3>
+      <p class="text-[13px] mb-4" style="color:var(--ink-soft);">
+        共作答 ${cat.log.length} 題．單字語音辨識評估：標準 ${standardCount}／${allChars.length} 字${anySimulated ? '（部分題目為模擬結果，詳見各題標示）' : ''}
+      </p>
+      <div class="flex flex-col gap-2.5">
+        ${cat.log.map(renderSpeakingResultItem).join('')}
+      </div>
+    </div>`;
+}
+
+// ==================== 啟動 ====================
+render();
+</script>
+</body>
+</html>

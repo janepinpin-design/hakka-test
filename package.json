@@ -1,0 +1,15 @@
+{
+  "name": "hakka-speaking-score-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vercel serverless proxy for the Hakka pronunciation scoring API (hakka_wav_score) used by the 口說測驗 feature of the Hakka test prototype.",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "formidable": "^3.5.1",
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.3.2"
+  }
+}
