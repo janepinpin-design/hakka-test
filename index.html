@@ -613,6 +613,22 @@ async function callScoringApi(wavBlob, pinyin, accentId, text){
     return null;
   }
 }
+
+// 口說測驗開始前，先偷偷送一個極小的「暖身」請求去叫醒評分服務（我們自己的後端＋上游評分
+// 服務都可能因為一段時間沒人用而處於休眠狀態，第一次呼叫要花時間喚醒，容易造成使用者
+// 實際錄音送出評分時，第一題逾時或失敗）。
+// 這裡刻意不等待、不處理任何回應或錯誤，純粹在背景進行，不影響畫面或測驗流程；
+// 就算暖身請求本身失敗，也完全不影響後續真正的評分請求。
+function warmUpScoringApi(){
+  const base = scoringEndpointBase();
+  if (base === null) return; // file:// 開啟時沒有後端可以連，略過
+  const dummyBody = new Uint8Array([0]); // 只需要非空 body，讓後端願意繼續往下執行到呼叫上游
+  fetch(`${base}/api/score?pinyin=${encodeURIComponent('id2')}&accentId=1&text=${encodeURIComponent('暖身')}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'audio/wav' },
+    body: dummyBody,
+  }).catch(() => {});
+}
 // ==================== 共用工具 ====================
 function stripExt(s){
   if (!s) return s;
@@ -832,6 +848,11 @@ function afterAnswer(sectionKey){
   const cat = state[sectionKey];
   if (cat.finished){
     state.screen = sectionKey === 'reading' ? 'transitionA' : 'transitionB';
+    if (sectionKey === 'listening'){
+      // 聽力測驗一結束就先暖身評分服務，讓使用者閱讀過渡頁、點擊「開始口說測驗」
+      // 這段期間，服務有機會先被叫醒，降低口說第一題就失敗的機率。
+      warmUpScoringApi();
+    }
   }
   render();
 }
@@ -866,6 +887,7 @@ function renderTransitionA(){
 // ==================== 過渡頁面 B ====================
 function goToSpeaking(){
   state.screen = 'speaking';
+  warmUpScoringApi(); // 保險起見再暖身一次（涵蓋「略過聽力測驗」直接進來的路徑）
   startSpeakingSection();
   render();
 }
