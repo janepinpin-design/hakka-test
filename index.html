@@ -1368,8 +1368,13 @@ async function confirmSpeakingSubmit(){
   // 逐字標準／不標準：評分 API 只會回傳整題總分，沒有逐字資料，
   // 所以用「總分 = 每個字判定為標準的機率」來還原逐字呈現
   // （分數越高，字被標示為「標準」的機率越高）；模擬分數同樣套用這個換算方式。
+  // 目標客語漢字裡可能含有標點符號（，。、！？；：「」（）等，純粹為了斷句可讀），
+  // 這些不是要評估發音的「字」，逐字呈現時要先過濾掉，不然會出現「，標準」這種奇怪結果。
+  const PUNCT_RE = /[，,。、！？；：「」『』""''（）()\s]/;
   const standardProb = Math.max(0, Math.min(1, score / 100));
-  const chars = Array.from(q.target).map(ch => ({ char: ch, standard: Math.random() < standardProb }));
+  const chars = Array.from(q.target)
+    .filter(ch => !PUNCT_RE.test(ch))
+    .map(ch => ({ char: ch, standard: Math.random() < standardProb }));
 
   cat.log.push({
     seq: cat.pos + 1,
